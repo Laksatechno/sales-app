@@ -18,7 +18,7 @@ class ProductSeeder extends Seeder
         foreach (range(1, 10) as $index) {
             DB::table('products')->insert([
                 'name' => $faker->word,
-                'price' => $faker->numberBetween(1000, 2000000), // Harga antara 2 - 1000
+                // 'price' => $faker->numberBetween(1000, 2000000), // Harga antara 2 - 1000
                 'stock' => $faker->numberBetween(1, 100), // Stok antara 1 - 100
                 'created_at' => now(),
                 'updated_at' => now(),

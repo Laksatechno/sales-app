@@ -35,8 +35,7 @@
                     </div>
                     <button type="button" id="saveButton" class="btn btn-primary">Simpan</button>
                 </form>
-                
-            </div>
+                <hr>
             <h3>Keranjang Anda</h3>
             <table class="table table-responsive">
                 <thead>
@@ -51,6 +50,8 @@
                 <tbody id="cartDetails">
                 </tbody>
             </table>
+            </div>
+
         </div>
     </div>
 
@@ -63,6 +64,8 @@
         });
 
         function fetchEditData() {
+            $('#price').val('');
+            $('#quantity').val('');
             $.ajax({
                 url: `editjson/${id}`,
                 method: 'GET',
@@ -126,8 +129,23 @@
                     id: id,
                 },
                 success: function (response) {
-                    alert(response.message);
+                    // alert(response.message);
                     fetchEditData(); // Refresh data
+                    if (response.status == 'success') {
+                            swal.fire({
+                                title: 'Berhasil!',
+                                text: 'Pesanan berhasil di perbarui!',
+                                icon: 'success',
+                                timer: 2000,
+                            });
+                        } else {
+                            swal.fire({
+                                title: 'Oops!',
+                                text: response.message,
+                                icon: 'error',
+                                timer: 1500,
+                            });
+                        }
                 },
                 error: function (response) {
                     alert(response.responseJSON.message || 'Terjadi kesalahan.');
@@ -155,6 +173,21 @@
                         // alert(response.message);
                         console.log('success ' + response.message)
                         fetchEditData(); // Refresh data
+                        if (response.status == 'success') {
+                            swal.fire({
+                                title: 'Berhasil!',
+                                text: 'Pesanan berhasil di perbarui!',
+                                icon: 'success',
+                                timer: 2000,
+                            });
+                        } else {
+                            swal.fire({
+                                title: 'Oops!',
+                                text: response.message,
+                                icon: 'error',
+                                timer: 1500,
+                            });
+                        }
                     },
                     error: function (response) {
                         const errors = response.responseJSON.errors;

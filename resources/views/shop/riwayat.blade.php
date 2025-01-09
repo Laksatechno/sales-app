@@ -46,9 +46,7 @@
                 {{-- <img src="assets/img/sample/brand/1.jpg" alt="img" class="image-block imaged w48"> --}}
                 <div>
                     <strong>{{ $sale->invoice_number }}</strong>
-                    <p>{{ $sale->details[0]->product->name ?? 'No product name available' }}</p>
-                    <p>{{ $sale->details[0]->quantity ?? 'No quantity available' }}</p>
-                    
+                    <p>{{ $sale->details[0]->product->name ?? 'No product name available' }} x{{ $sale->details[0]->quantity ?? 'No quantity available' }} </p>
                     <p>{{ $sale->created_at->format('d-m-Y') }}</p>
                     <p>{{ $sale->marketing->name }}</p>
                     {{-- <a href="{{ url('shop/edit', $sale->id) }}" class="btn btn-primary">edit</a> --}}

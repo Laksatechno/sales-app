@@ -13,12 +13,20 @@ class RoleMiddleware
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
+    // public function handle($request, Closure $next, ...$roles)
+    // {
+    //     if (!in_array(auth()->user()->role, $roles)) {
+    //         return redirect('/')->with('error', 'Access Denied');
+    //     }
+    //     return $next($request);
+    // }
+
     public function handle($request, Closure $next, ...$roles)
     {
-        if (!in_array(auth()->user()->role, $roles)) {
-            return redirect('/')->with('error', 'Access Denied');
+        if (in_array($request->user()->role, $roles)) {
+            return $next($request);
         }
-        return $next($request);
+        return redirect('/home');
     }
     
 }

@@ -78,25 +78,51 @@ class ShopApiController extends Controller
         ]);
     
         try {
+            // Cari sale berdasarkan ID
             $sale = Sale::with('details')->findOrFail($request->id);
-    
+
+            // Cek apakah produk sudah ada di sales_details
             $detail = $sale->details()->where('product_id', $request->product_id)->first();
     
             if ($detail) {
+                // Jika produk sudah ada, update quantity dan total
                 $detail->quantity += $request->quantity;
                 $detail->total = $detail->price * $detail->quantity;
             } else {
+                // Jika produk belum ada, buat entri baru di sales_details
                 $detail = new SaleDetail();
                 $detail->sale_id = $sale->id;
                 $detail->product_id = $request->product_id;
                 $detail->quantity = $request->quantity;
-                $detail->price = $request->price;
-                $detail->total = $request->price * $request->quantity;
+                $detail->price = $request->price; // Ambil harga dari tabel products
+                $detail->total = $request->price * $request->quantity; // Hitung total
             }
     
+            // Simpan perubahan di sales_details
             $detail->save();
     
-            return response()->json(['message' => 'Detail berhasil disimpan atau diperbarui.'], 200);
+            // Hitung ulang total penjualan
+            $totalSales = $sale->details()->sum('total');
+    
+            // Update total di tabel sales
+            $sale->total = $totalSales;
+            $sale->save();
+
+                // Kurangi stok produk
+                $product = Product::find($request->product_id);
+                if ($product) {
+                    if ($product->stock < $request->quantity) {
+                        return response()->json(['message' => 'error', "Stok produk {$product->name} tidak mencukupi."], 200);
+                    }
+        
+                    $product->stock -= $request->quantity;
+                    $product->save();
+                }
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Detail berhasil disimpan atau diperbarui.',
+            ],200);
+            
         } catch (\Exception $e) {
             return response()->json(['message' => 'Terjadi kesalahan: ' . $e->getMessage()], 500);
         }
@@ -105,15 +131,38 @@ class ShopApiController extends Controller
     public function deleteDetail(Request $request)
     {
         $detailId = $request->input('id');
-
+    
+        // Cari detail penjualan berdasarkan ID
         $detail = SaleDetail::find($detailId);
         if (!$detail) {
             return response()->json(['message' => 'Detail not found'], 404);
         }
-
+    
+        // Cari sale berdasarkan sale_id dari detail
+        $sale = Sale::with('details')->findOrFail($detail->sale_id);
+    
+        // Hapus detail penjualan
         $detail->delete();
-
-        return response()->json(['message' => 'Detail deleted successfully']);
+    
+        // Kurangi stok produk
+        $product = Product::find($detail->product_id);
+        if ($product) {
+            $product->stock += $detail->quantity;
+            $product->save();
+        }
+    
+        // Hitung ulang total penjualan
+        $totalSales = $sale->details()->sum('total');
+    
+        // Update total di tabel sales
+        $sale->total = $totalSales;
+        $sale->save();
+    
+        // return response()->json(['message' => 'Detail deleted successfully']);
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Detail deleted successfully.',
+        ]);
     }
 }
 

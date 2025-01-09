@@ -23,6 +23,15 @@ use App\Http\Controllers\Api\ShopApiController;
 | be assigned to the "web" middleware group. Make something great!
 |
 */
+Route::middleware('guest')->group(function () {
+    #Route Login
+    Route::get('/', function () {
+        return view('auth.login');
+    })->name('login');
+});
+Route::group(['middleware' => ['auth']], function () {
+    Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+});
 
 
 Route::middleware(['auth', 'role:superadmin'])->group(function () {
