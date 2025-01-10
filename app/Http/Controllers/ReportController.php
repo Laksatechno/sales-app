@@ -6,18 +6,134 @@ use Illuminate\Http\Request;
 use App\Models\Sale;
 use App\Models\Product;
 use App\Models\Customer;
+use App\Models\User;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class ReportController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $sales = Sale::with('details.product')->get();
+        // Ambil data sales dengan filter
+        $sales = Sale::with('details.product', 'customer', 'marketing')->orderBy('created_at', 'desc');
+    
+        // Filter berdasarkan pencarian (invoice number atau nama customer)
+        if ($request->has('search') && $request->search != '') {
+            $search = $request->search;
+            $sales->where(function ($query) use ($search) {
+                $query->where('invoice_number', 'like', '%' . $search . '%')
+                      ->orWhereHas('customer', function ($q) use ($search) {
+                          $q->where('name', 'like', '%' . $search . '%');
+                      })
+                      ->orWhereHas('marketing', function ($q) use ($search) {
+                          $q->where('name', 'like', '%' . $search . '%');
+                      });
+            });
+        }
+    
+        // Filter berdasarkan rentang waktu
+        if ($request->has('date_range')) {
+            $dateRange = $request->date_range;
+            if ($dateRange == 'today') {
+                $sales->whereDate('created_at', today());
+            } elseif ($dateRange == 'last_7_days') {
+                $sales->where('created_at', '>=', now()->subDays(7));
+            } elseif ($dateRange == 'this_month') {
+                $sales->whereMonth('created_at', now()->month);
+            } elseif ($dateRange == 'custom_range' && $request->has('start_date') && $request->has('end_date')) {
+                $sales->whereBetween('created_at', [$request->start_date, $request->end_date]);
+            }
+        }
+    
+        // Filter berdasarkan jenis transaksi
+        if ($request->has('transaction_type')) {
+            $transactionType = $request->transaction_type;
+            if ($transactionType == 'customer') {
+                $sales->whereNotNull('customer_id');
+            } elseif ($transactionType == 'user') {
+                $sales->whereNotNull('user_id');
+            }
+        }
+    
+        // Filter berdasarkan marketing
+        if ($request->has('user_id')) {
+            $sales->where('user_id', $request->id);
+        }
+    
+        // Ambil data sales yang sudah difilter
+        $sales = $sales->get();
+    
+        // Jika permintaan AJAX, kembalikan partial view
+        if ($request->ajax()) {
+            return view('reports.sales_list', compact('sales'))->render();
+        }
+    
+        // Ambil data tambahan untuk dropdown filter
         $products = Product::all();
-        $sale = Sale::where('id', 1)->with('details.product')->first();
         $customers = Customer::all();
-        // dd($products);
-        return view('reports.index' , compact('sales', 'products', 'sale', 'customers'));
+        $marketings = User::where('role', 'marketing')->get();
+    
+        return view('reports.index', compact('sales', 'products', 'customers', 'marketings'));
     }
+
+    public function print(Request $request)
+{
+    
+    // Ambil data sales dengan filter yang sama seperti di index
+    $sales = Sale::with('details.product', 'customer', 'marketing');
+
+    // Filter berdasarkan pencarian
+    if ($request->has('search') && $request->search != '') {
+        $search = $request->search;
+        $sales->where(function ($query) use ($search) {
+            $query->where('invoice_number', 'like', '%' . $search . '%')
+                  ->orWhereHas('customer', function ($q) use ($search) {
+                      $q->where('name', 'like', '%' . $search . '%');
+                  })
+                  ->orWhereHas('marketing', function ($q) use ($search) {
+                      $q->where('name', 'like', '%' . $search . '%');
+                  });
+        });
+    }
+
+    // Filter berdasarkan rentang waktu
+    if ($request->has('date_range')) {
+        $dateRange = $request->date_range;
+        if ($dateRange == 'today') {
+            $sales->whereDate('created_at', today());
+        } elseif ($dateRange == 'last_7_days') {
+            $sales->where('created_at', '>=', now()->subDays(7));
+        } elseif ($dateRange == 'this_month') {
+            $sales->whereMonth('created_at', now()->month);
+        } elseif ($dateRange == 'custom_range' && $request->has('start_date') && $request->has('end_date')) {
+            $sales->whereBetween('created_at', [$request->start_date, $request->end_date]);
+        }
+    }
+
+    // Filter berdasarkan jenis transaksi
+    if ($request->has('transaction_type')) {
+        $transactionType = $request->transaction_type;
+        if ($transactionType == 'customer') {
+            $sales->whereNotNull('customer_id');
+        } elseif ($transactionType == 'user') {
+            $sales->whereNotNull('user_id');
+        }
+    }
+
+    // Filter berdasarkan marketing
+    if ($request->has('user_id')) {
+        $sales->where('user_id', $request->id);
+    }
+
+    // Ambil data sales yang sudah difilter
+    $sales = $sales->get();
+
+    // Load view untuk PDF
+    $pdf = Pdf::loadView('reports.print', compact('sales'));
+
+    // Download atau tampilkan PDF
+    // return $pdf->download('laporan_penjualan.pdf');
+    return $pdf->stream('laporan_penjualan.pdf');
+}
 
     public function show($product_id)
     {

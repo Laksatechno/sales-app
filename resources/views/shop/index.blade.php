@@ -19,32 +19,26 @@
                 {{ session('error') }}
             </div>
             @endif
-            <table class="table-responsive table ">
-                <thead>
-                    <tr>
-                        <th>Produk</th>
-                        <th>stock</th>
-                        <th>Harga</th>
-                        <th>Jumlah</th>
-                        <th>Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach ($products as $product)
-                    <tr>
-                        <td>{{ $product->product->name }}</td>
-                        <td>{{ $product->product->stock }}</td>
-                        <td>{{ number_format($product->price, 0, ',', '.') }}</td>
-                        <td>
-                            <input type="number" id="quantity-{{ $product->product_id }}" value="1" min="1" class="form-control">
-                        </td>
-                        <td>
-                            <button class="btn btn-primary add-to-cart" data-id="{{ $product->product_id }}">Tambah Keranjang</button>
-                        </td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
+            <form id="add-to-cart-form" method="POST">
+                @csrf <!-- Tambahkan CSRF token untuk keamanan -->
+                <div class="form-group">
+                    <label for="product-select">Pilih Produk:</label>
+                    <select class="form-control" id="product-select" name="product_id">
+                        @foreach ($products as $product)
+                        <option value="{{ $product->product_id }}" data-price="{{ $product->price }}">
+                            {{ $product->product->name }} - Rp {{ number_format($product->price, 0, ',', '.') }} (Stok: {{ $product->product->stock }})
+                        </option>
+                        @endforeach
+                    </select>
+                </div>
+            
+                <div class="form-group">
+                    <label for="quantity">Jumlah:</label>
+                    <input type="number" id="quantity" name="quantity" value="1" min="1" class="form-control">
+                </div>
+            
+                <button type="button" id="add-to-cart-btn" class="btn btn-primary">Tambah Keranjang</button>
+            </form>
             <div class="section-title mt-3">Pilihan</div>
             <hr>
 
@@ -72,80 +66,110 @@
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-    $('.add-to-cart').click(function () {
-        const productId = $(this).data('id');
-        const quantity = $(`#quantity-${productId}`).val();
+    $(document).ready(function () {
+        // Handle "Tambah Keranjang" button click
+        $('#add-to-cart-btn').click(function () {
+            const productId = $('#product-select').val(); // Ambil product_id dari select
+            const quantity = $('#quantity').val(); // Ambil jumlah dari input
+            const price = $('#product-select').find(':selected').data('price'); // Ambil harga dari data-price
 
-        $.ajax({
-            url: '{{ route("shop.add_to_cart") }}',
-            method: 'POST',
-            data: {
-                _token: '{{ csrf_token() }}',
-                product_id: productId,
-                quantity: quantity,
-            },
-            success: function (response) {
-                alert(response.message);
-
-                // Update the cart display
-                if (response.cart) {
-                    updateCartTable(response.cart);
-
-                }
-            },
-            error: function (response) {
-                alert(response.responseJSON.message);
-            }
-        });
-    });
-
-    function updateCartTable(cart) {
-        let cartHtml = '';
-        $.each(cart, function (key, item) {
-            cartHtml += `<tr>
-                            <td>${item.name}</td>
-                            <td>${new Intl.NumberFormat().format(item.price)}</td>
-                            <td>${item.quantity}</td>
-                            <td>${new Intl.NumberFormat().format(item.total)}</td>
-                            <td>
-                                <button class="btn btn-danger remove-from-cart" data-id="${key}">Hapus</button>
-                            </td>
-                         </tr>`;
-        });
-        $('#cart-items').html(cartHtml);
-        $('#cart-table').toggle(cartHtml !== '');
-
-        // Bind the remove event to dynamically added buttons
-        bindRemoveFromCart();
-    }
-
-    function bindRemoveFromCart() {
-        $('.remove-from-cart').click(function () {
-            const productId = $(this).data('id');
-
+            // Kirim data ke server menggunakan AJAX
             $.ajax({
-                url: '{{ route("shop.remove_from_cart") }}',
+                url: '{{ route("shop.add_to_cart") }}', // Route untuk menambahkan ke keranjang
                 method: 'POST',
                 data: {
-                    _token: '{{ csrf_token() }}',
+                    _token: '{{ csrf_token() }}', // CSRF token
                     product_id: productId,
+                    quantity: quantity,
+                    price: price,
                 },
                 success: function (response) {
-                    alert(response.message);
-
-                    // Update the cart display
+                    // alert(response.message); // Tampilkan pesan sukses
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil!',
+                        text: response.message,
+                        timer: 1500,
+                    });
+                    // Perbarui tampilan keranjang
                     if (response.cart) {
                         updateCartTable(response.cart);
                     }
                 },
                 error: function (response) {
-                    alert(response.message);
+                    // alert(response.responseJSON.message); // Tampilkan pesan error
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops!',
+                        text: response.responseJSON.message,
+                        timer: 1500,
+                    });
                 }
             });
         });
-    }
 
-    // Initial binding
-    bindRemoveFromCart();
+        // Fungsi untuk memperbarui tabel keranjang
+        function updateCartTable(cart) {
+            let cartHtml = '';
+            $.each(cart, function (key, item) {
+                cartHtml += `<tr>
+                                <td>${item.name}</td>
+                                <td>${new Intl.NumberFormat().format(item.price)}</td>
+                                <td>${item.quantity}</td>
+                                <td>${new Intl.NumberFormat().format(item.total)}</td>
+                                <td>
+                                    <button class="btn btn-danger remove-from-cart" data-id="${key}">Hapus</button>
+                                </td>
+                             </tr>`;
+            });
+            $('#cart-items').html(cartHtml);
+            $('#cart-table').toggle(cartHtml !== ''); // Tampilkan tabel jika ada item
+
+            // Bind event untuk tombol "Hapus"
+            bindRemoveFromCart();
+        }
+
+        // Fungsi untuk menghapus item dari keranjang
+        function bindRemoveFromCart() {
+            $('.remove-from-cart').click(function () {
+                const productId = $(this).data('id');
+
+                $.ajax({
+                    url: '{{ route("shop.remove_from_cart") }}',
+                    method: 'POST',
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        product_id: productId,
+                    },
+                    success: function (response) {
+                        // alert(response.message);
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil!',
+                            text: response.message,
+                            timer: 1500,
+                        });
+
+                        // Perbarui tampilan keranjang
+                        if (response.cart) {
+                            updateCartTable(response.cart);
+                        }
+                    },
+                    error: function (response) {
+                        // alert(response.responseJSON.message);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Oops!',
+                            text: response.responseJSON.message,
+                            timer: 1500,
+                        });
+                    }
+                });
+            });
+        }
+
+        // Binding awal untuk tombol "Hapus"
+        bindRemoveFromCart();
+    });
 </script>
 @endsection

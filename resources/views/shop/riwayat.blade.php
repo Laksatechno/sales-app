@@ -49,13 +49,17 @@
                     <p>{{ $sale->details[0]->product->name ?? 'No product name available' }} x{{ $sale->details[0]->quantity ?? 'No quantity available' }} </p>
                     <p>{{ $sale->created_at->format('d-m-Y') }}</p>
                     <p>{{ $sale->marketing->name }}</p>
+                    <span class="badge bg-secondary">Rp. {{ number_format($sale->total, 2) }}</span>
                     {{-- <a href="{{ url('shop/edit', $sale->id) }}" class="btn btn-primary">edit</a> --}}
                 </div>
             </div>
             <div class="right">
-                <a href="{{ url('shop/detailsinvoice', $sale->id) }}" class="btn btn-primary">Detail</a>
-                <a href="{{ url('shop/edit', $sale->id) }}" class="btn btn-primary">edit</a>
-                <div class="price text-danger " style="font-size: 12px;">Rp. {{ number_format($sale->total, 2) }}</div>
+                <a href="{{ url('shop/detailsinvoice', $sale->id) }}" class="btn btn-success btn-sm">
+                    Detail
+                </a>
+                <a href="{{ url('shop/edit', $sale->id) }}" class="btn btn-warning btn-sm">
+                    Edit
+                </a>
             </div>
         </div>
 

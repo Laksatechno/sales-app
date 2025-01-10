@@ -94,7 +94,22 @@ class CustomerPurchaseController extends Controller
     
         $total = array_sum(array_column($cart, 'total'));
         $customer = Auth::user()->id;
-    
+        
+        $user = $customer; // Simpan data user ke variabel $user
+
+        // Cek jika jenis_institusi adalah 'pmi'
+        if (Auth::user()->jenis_institusi == 'pmi') {
+            $taxstatus = 'non-ppn'; // Set tax_status menjadi 'non-ppn'
+        } else {
+            $taxstatus = 'ppn'; // Jika bukan 'pmi', set tax_status menjadi 'ppn' (atau nilai default lainnya)
+        }
+
+        if (Auth::user()->tipe_pelanggan == 'subdis') {
+            $due_date = null; 
+        } else {
+            $due_date = now()->addMonth(1); 
+        }
+
         $sale = Sale::create([
             'invoice_number' => 'INV-' . time(),
             'user_customer_id' => $customer,
@@ -102,8 +117,8 @@ class CustomerPurchaseController extends Controller
             'total' => $total,
             'tax' => 0,
             'diskon' => 0,
-            'tax_status' => 'non-ppn',
-            'due_date' => now()->addDays(7),
+            'tax_status' =>  $taxstatus,
+            'due_date' => $due_date,
             'status' => 'pending',
         ]);
     

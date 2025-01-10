@@ -8,7 +8,7 @@
     <!-- App Header -->
     <div class="appHeader bg-purple text-light">
         <div class="left">
-            <a href="/home" class="headerButton goBack">
+            <a href="/" class="headerButton goBack">
                 <ion-icon name="chevron-back-outline"></ion-icon>
             </a>
         </div>

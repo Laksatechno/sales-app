@@ -21,6 +21,8 @@
 <script src="{{ asset('assets/plugins/datatables/dataTables.bootstrap.min.js') }}"></script>
 <script src="{{ asset('assets/plugins/datepicker/bootstrap-datepicker.js') }}"></script>
 <script src="{{ asset('assets/plugins/magnific-popup/jquery.magnific-popup.min.js') }}"></script>
+
+
 <script>
     $(".datepicker").datepicker({
         format: "dd-mm-yyyy",

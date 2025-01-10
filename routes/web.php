@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\BrochureController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\CustomerController;
@@ -30,13 +31,13 @@ Route::middleware('guest')->group(function () {
     })->name('login');
 });
 Route::group(['middleware' => ['auth']], function () {
-    Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+    Route::get('/', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 });
 
 
 Route::middleware(['auth', 'role:superadmin'])->group(function () {
     // Dashboard
-    Route::get('/', function () {
+    Route::get('/home', function () {
         return view('dashboard');
     })->name('dashboard');
     
@@ -49,6 +50,11 @@ Route::middleware(['auth', 'role:superadmin'])->group(function () {
     // Customer
     Route::resource('customers', CustomerController::class);
 
+    //brosur 
+    Route::resource('brochures', BrochureController::class);
+    Route::get('/brochures/{brochure}/download', [BrochureController::class, 'download'])
+    ->name('brochures.download');
+    
     //CustomerProductPrice
     Route::resource('customer-product-price', CustomerProductPriceController::class);
     Route::post('user-customer-product-price', [CustomerProductPriceController::class, 'storeusercustomer'])->name('customer-product-price.storeusercustomer');
@@ -61,6 +67,7 @@ Route::middleware(['auth', 'role:superadmin'])->group(function () {
     Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
     Route::get('reports/show/{id}', [ReportController::class, 'show'])->name('reports.show');
     Route::get('reports/reportbycustomer/{customer_id}', [ReportController::class, 'reportbycustomer'])->name('reports.reportbycustomer');
+    Route::post('/reports/print', [ReportController::class, 'print'])->name('reports.print');
 
     // Route::resource('shipments', ShipmentController::class);
     Route::get('shipments', [ShipmentController::class, 'index'])->name('shipments.index');
@@ -88,7 +95,7 @@ Route::middleware(['auth', 'role:superadmin'])->group(function () {
 
 });
 Route::middleware(['auth', 'role:customer'])->group(function () {
-    Route::get('/', function () {
+    Route::get('/home', function () {
         return view('dashboard');
     })->name('dashboard');
 

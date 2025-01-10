@@ -6,20 +6,20 @@
 <div class="section mt-2">
     <div class="card">
         <div class="card-body">
-            <h2>Product List</h2>
-            <a href="{{ route('products.create') }}" class="btn btn-primary mb-3">Add New Product</a>
+            <h2>Data Product</h2>
+            <a href="{{ route('products.create') }}" class="btn btn-primary mb-3">Tambah Produk</a>
             @if(session('success'))
                 <div class="alert alert-success">
                     {{ session('success') }}
                 </div>
             @endif
-            <table class="table">
+            <table class="table table-responsive">
                 <thead>
                     <tr>
-                        <th>Name</th>
-                        <th>Price</th>
+                        <th>Nama</th>
+                        <th>Harga</th>
                         <th>Stock</th>
-                        <th>Action</th>
+                        <th>Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -33,7 +33,7 @@
                                 <form action="{{ route('products.destroy', $product->id) }}" method="POST" style="display:inline;">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="btn btn-danger">Delete</button>
+                                    <button type="submit" class="btn btn-danger">Hapus</button>
                                 </form>
                             </td>
                         </tr>

@@ -110,7 +110,7 @@
             <div class="row mt-2">
                 <div class="col-6">
                     <div class="stat-box">
-                        <div class="title">Total Penjualan</div>
+                        <div class="title" style="font-size: 12px;">Total Penjualan</div>
                         <div class="value text-success">Rp. {{number_format($totalsale)}}</div>
                     </div>
                 </div>
