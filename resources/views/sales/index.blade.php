@@ -5,18 +5,18 @@
 @section('content')
 
     <div class="section mt-2">
-        <div class="card">
-            <div class="card-body table-responsive">
-                <h2>Data Penjualan</h2>
-                <a href="{{ route('sales.create') }}" class="btn btn-primary">Buat Penjualan</a>
-
-                @if (session('success'))
+        <div class="section-heading">
+            <h2 class="title">Penjualan</h2>
+            <a href="{{ route('sales.create') }}" class="btn btn-primary">Buat Penjualan</a>
+        </div>
+        @if (session('success'))
                     <div class="alert alert-success mt-3">
                         {{ session('success') }}
                     </div>
-                @endif
-
-                <table class="table mt-3">
+        @endif
+        <div class="card">
+            <div class="card-body table-responsive">
+                <table class="table mt-3" id="salesTable" style=" width: 100%;">
                     <thead>
                         <tr>
                             <th>No. Invoice</th>
@@ -81,4 +81,12 @@
             </div>
         </div>
     </div>
+
+@push ('custom-scripts')
+    <script>
+        $(document).ready(function() {
+            $('#salesTable').DataTable();
+        });
+    </script>
+@endpush
 @endsection

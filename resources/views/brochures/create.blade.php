@@ -1,24 +1,34 @@
 @extends('layouts.app')
-
+@section('header')
+    @include('layouts.appheaderback')
+@endsection
 @section('content')
-<div class="container mt-5">
-    <h1>Create New Brochure</h1>
+<div class="section mt-2">
+    <div class="section-heading">
+        <h2 class="title">Brosur</h2>
+        <a href="{{ route('brochures.index') }}" class="btn btn-primary">Kembali</a>
+    </div>
+    <div class="card">
+        <div class="card-body">
+    <h1>Tambah Brosur</h1>
     <form id="createBrochureForm" enctype="multipart/form-data">
         @csrf
         <div class="form-group">
-            <label for="title">Title</label>
-            <input type="text" name="title" id="title" class="form-control" required>
+            <label for="title">Nama Brosur</label>
+            <input type="text" name="title" id="title" class="form-control" placeholder="Misal : Blood Bag" required>
         </div>
         <div class="form-group">
-            <label for="description">Description</label>
-            <textarea name="description" id="description" class="form-control"></textarea>
+            <label for="description">Deskripsi</label>
+            <textarea name="description" id="description" class="form-control " placeholder="Misal : Kantong untuk menyimpan darah." required rows="5"></textarea>
         </div>
         <div class="form-group">
-            <label for="file">File</label>
+            <label for="file">File Brosur</label>
             <input type="file" name="file" id="file" class="form-control" required>
         </div>
-        <button type="submit" class="btn btn-primary mt-3">Submit</button>
+        <button type="submit" class="btn btn-primary mt-3">SIMPAN</button>
     </form>
+        </div>
+    </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

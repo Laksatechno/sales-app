@@ -32,6 +32,13 @@ Route::middleware('guest')->group(function () {
 });
 Route::group(['middleware' => ['auth']], function () {
     Route::get('/', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+
+        // Profile Route
+        Route::get('/profile', [AuthController::class, 'profile'])->name('profile');
+        Route::post('profile/update', [AuthController::class, 'update'])->name('profile.update');
+        Route::post('profile/updatepassword', [AuthController::class, 'updatepassword'])->name('profile.updatepassword');
+        Route::post('profile/updatephoto', [AuthController::class, 'updatePhoto'])->name('profile.updatephoto');
+    
 });
 
 
@@ -91,7 +98,6 @@ Route::middleware(['auth', 'role:superadmin'])->group(function () {
         Route::get('/cari/penawaran', [PenawaranController::class, 'cari'])->name('cari.penawaran');
     });
 
-    Route::get('/profile', [AuthController::class, 'profile'])->name('profile');
 
 });
 Route::middleware(['auth', 'role:customer'])->group(function () {
@@ -116,11 +122,6 @@ Route::middleware(['auth', 'role:customer'])->group(function () {
 
     });
 
-    // Profile Route
-    Route::get('/profile', [AuthController::class, 'profile'])->name('profile');
-    Route::post('profile/update', [AuthController::class, 'update'])->name('profile.update');
-    Route::post('profile/updatepassword', [AuthController::class, 'updatepassword'])->name('profile.updatepassword');
-    Route::post('profile/updatephoto', [AuthController::class, 'updatePhoto'])->name('profile.updatephoto');
 
 });
 

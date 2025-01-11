@@ -154,98 +154,98 @@ $(document).ready(function() {
 //     });
     
     
-//     /* ---------- UPDATE PROFILE -----------------*/
-    $('#update-profile').submit(function (e) {
-        e.preventDefault();
-        if($('#employees_name').val()==''){    
-             swal({title:'Oops!', text: 'Harap bidang inputan tidak boleh ada yang kosong.!', icon: 'error', timer: 1500,});
-            return false;
-            loading();
-        }
-        else{
-            loading();
-            $.ajax({
-                url:updateprofileUrl,
-                type: "POST",
-                data: new FormData(this),
-                processData: false,
-                contentType: false,
-                cache: false,
-                async: false,
-                beforeSend: function () { 
-                  loading();
-                },
-                success: function (response) {
-                    if (response.status == 'success') {
-                        swal({title: 'Berhasil!', text:  'Profil berhasil di perbaharui!', icon: 'success', timer: 2000,});
-                        // setTimeout(function(){ location.reload(); }, 2500);
-                        console.log(response.data );
-                        $(".btn-profile").text('Simpan');
-                    } else {
-                        swal({title: 'Oops!', text: response.message, icon: 'error', timer: 1500,});
-                    }
-                },
-                error: function (xhr) {
-                    console.log("Error response: ", xhr.responseText); // Tambahkan log untuk mengetahui error dari server
-                    swal({title: 'Error!', text: 'Terjadi kesalahan saat menyimpan data. Status: ' + xhr.status, icon: 'error', timer: 1500,});
-                },
-                complete: function () {
-                    $(".loading").hide();
-                },
-            });
-        }
-    });
+//     /* ---------- UPDATE  -----------------*/
+//     $('#update-profile').submit(function (e) {
+//         e.preventDefault();
+//         if($('#employees_name').val()==''){    
+//              swal({title:'Oops!', text: 'Harap bidang inputan tidak boleh ada yang kosong.!', icon: 'error', timer: 1500,});
+//             return false;
+//             loading();
+//         }
+//         else{
+//             loading();
+//             $.ajax({
+//                 url:updateprofileUrl,
+//                 type: "POST",
+//                 data: new FormData(this),
+//                 processData: false,
+//                 contentType: false,
+//                 cache: false,
+//                 async: false,
+//                 beforeSend: function () { 
+//                   loading();
+//                 },
+//                 success: function (response) {
+//                     if (response.status == 'success') {
+//                         swal({title: 'Berhasil!', text:  'Profil berhasil di perbaharui!', icon: 'success', timer: 2000,});
+//                         // setTimeout(function(){ location.reload(); }, 2500);
+//                         console.log(response.data );
+//                         $(".btn-profile").text('Simpan');
+//                     } else {
+//                         swal({title: 'Oops!', text: response.message, icon: 'error', timer: 1500,});
+//                     }
+//                 },
+//                 error: function (xhr) {
+//                     console.log("Error response: ", xhr.responseText); // Tambahkan log untuk mengetahui error dari server
+//                     swal({title: 'Error!', text: 'Terjadi kesalahan saat menyimpan data. Status: ' + xhr.status, icon: 'error', timer: 1500,});
+//                 },
+//                 complete: function () {
+//                     $(".loading").hide();
+//                 },
+//             });
+//         }
+//     });
     
     
     
-//     /* ---------- UPDATE PASSWORD-----------------*/
-    $('#update-password').submit(function (e) {
-        e.preventDefault();
+// //     /* ---------- UPDATE PASSWORD-----------------*/
+//     $('#update-password').submit(function (e) {
+//         e.preventDefault();
 
-        // Validasi password
-        if ($('#employees_password').val() === '') {
-            swal({ title: 'Oops!', text: 'Password tidak boleh kosong!', icon: 'error', timer: 1500 });
-            return;
-        }
+//         // Validasi password
+//         if ($('#employees_password').val() === '') {
+//             swal({ title: 'Oops!', text: 'Password tidak boleh kosong!', icon: 'error', timer: 1500 });
+//             return;
+//         }
 
-        // Mulai loading
-        loading();
+//         // Mulai loading
+//         loading();
 
-        $.ajax({
-            url: updatepassUrl,
-            type: 'POST',
-            data: new FormData(this),
-            processData: false,
-            contentType: false,
-            cache: false,
-            beforeSend: function () {
-                loading();
-            },
-            success: function (response) {
-                if (response.status === 'success') {
-                    swal({ title: 'Berhasil!', text: 'Password berhasil diperbaharui!', icon: 'success', timer: 2000 });
-                    setTimeout(function () { location.reload(); }, 2500);
-                } else {
-                    swal({ title: 'Oops!', text: response.message, icon: 'error', timer: 2000 });
-                }
-            },
-            error: function (xhr) {
-                let errors = xhr.responseJSON.errors;
-                let errorMessage = '';
-                if (errors) {
-                    Object.keys(errors).forEach(function (key) {
-                        errorMessage += errors[key] + '\n';
-                    });
-                } else {
-                    errorMessage = xhr.responseJSON.message || 'Terjadi kesalahan.';
-                }
-                swal({ title: 'Oops!', text: errorMessage, icon: 'error', timer: 2000 });
-            },
-            complete: function () {
-                $(".loading").hide();
-            }
-        });
-    });
+//         $.ajax({
+//             url: updatepassUrl,
+//             type: 'POST',
+//             data: new FormData(this),
+//             processData: false,
+//             contentType: false,
+//             cache: false,
+//             beforeSend: function () {
+//                 loading();
+//             },
+//             success: function (response) {
+//                 if (response.status === 'success') {
+//                     swal({ title: 'Berhasil!', text: 'Password berhasil diperbaharui!', icon: 'success', timer: 2000 });
+//                     setTimeout(function () { location.reload(); }, 2500);
+//                 } else {
+//                     swal({ title: 'Oops!', text: response.message, icon: 'error', timer: 2000 });
+//                 }
+//             },
+//             error: function (xhr) {
+//                 let errors = xhr.responseJSON.errors;
+//                 let errorMessage = '';
+//                 if (errors) {
+//                     Object.keys(errors).forEach(function (key) {
+//                         errorMessage += errors[key] + '\n';
+//                     });
+//                 } else {
+//                     errorMessage = xhr.responseJSON.message || 'Terjadi kesalahan.';
+//                 }
+//                 swal({ title: 'Oops!', text: errorMessage, icon: 'error', timer: 2000 });
+//             },
+//             complete: function () {
+//                 $(".loading").hide();
+//             }
+//         });
+//     });
 
     
 //     /* --------- UPDATE PHOTO PROFILE ---------------*/

@@ -73,7 +73,7 @@
                     <div class="form-group boxed">
                         <div class="input-wrapper">
                             <label class="label" for="password">Password baru</label>
-                            <input type="password" class="form-control" name="password" id="password">
+                            <input type="password" class="form-control" name="password" id="password" autocomplete="new-password">
                             <i class="clear-input">
                                 <ion-icon name="close-circle"></ion-icon>
                             </i>
@@ -237,11 +237,11 @@ $(document).on('change','#avatar',function(){
         success: function(response) {
             if (response.status === 'success') {
                 console.log(response.data);
-                swal({title: 'Berhasil!', text: 'Photo Profil berhasil diperbaharui.!', icon: 'success', timer: 1500});
+                swal.fire({title: 'Berhasil!', text: 'Photo Profil berhasil diperbaharui.!', icon: 'success', timer: 1500});
                 setTimeout(function() { location.reload(); }, 1600);
             } else {
                 console.log(response.message);
-                swal({title: 'Oops!', text: response.message, icon: 'error', timer: 2000});
+                swal.fire({title: 'Oops!', text: response.message, icon: 'error', timer: 2000});
             }
         },
         error: function(xhr) {

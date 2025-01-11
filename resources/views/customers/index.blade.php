@@ -4,17 +4,24 @@
 @endsection
 @section('content')
 <div class="section mt-2">
-    <div class="card">
-        <div class="card-body">
-            <h2>Data Customer</h2>
+    <div class="section-heading">
+        {{-- <h2 class="title">Customer</h2> --}}
+        <div class="section-description">
             <a href="{{ route('customers.create') }}" class="btn btn-primary mb-3">Tambah Customer</a>
             <a href="{{ route('customer-product-price.index') }}" class="btn btn-primary mb-3">Harga Produk untuk Customer</a>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body table-responsive">
+            {{-- <h2>Data Customer</h2> --}}
+            {{-- <a href="{{ route('customers.create') }}" class="btn btn-primary mb-3">Tambah Customer</a>
+            <a href="{{ route('customer-product-price.index') }}" class="btn btn-primary mb-3">Harga Produk untuk Customer</a> --}}
             @if(session('success'))
                 <div class="alert alert-success">
                     {{ session('success') }}
                 </div>
             @endif
-            <table class="table table-responsive">
+            <table class="table " id="customerTable" style="width: 100%;">
                 <thead>
                     <tr>
                         <th>Nama</th>
@@ -49,4 +56,11 @@
         </div>
     </div>
 </div>
+@push ('custom-scripts')
+    <script>
+        $(document).ready(function() {
+            $('#customerTable').DataTable();
+        });
+    </script>
+@endpush
 @endsection

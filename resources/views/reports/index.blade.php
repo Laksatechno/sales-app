@@ -84,7 +84,7 @@
                     <button id="print-pdf-btn" class="btn btn-danger btn-sm btn-block mb-2">
                         <i class="fas fa-file-pdf"></i>PDF
                     </button>
-                    <div class="transactions mt-1">
+                    {{-- <div class="transactions mt-1">
                         <div class="item">
                             <div class="detail row">
                                 <div class="col">
@@ -101,7 +101,7 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </div> --}}
                     <!-- Daftar Penjualan -->
                     <div id="sales-list" class="transactions">
                         @include('reports.sales_list', ['sales' => $sales])
@@ -110,7 +110,7 @@
 
                 <!-- Tab Panel Per Produk -->
                 <div class="tab-pane fade" id="perproduk" role="tabpanel" aria-labelledby="cards-tab">
-                    <table class="table table-bordered mt-3">
+                    <table class="table table-bordered mt-3" id="productTable" style="width: 100%;">
                         <thead>
                             <tr>
                                 <th>Nama</th>
@@ -132,7 +132,7 @@
 
                 <!-- Tab Panel Per Customer -->
                 <div class="tab-pane fade" id="percustomer" role="tabpanel" aria-labelledby="cards-tab">
-                    <table class="table table-bordered mt-3">
+                    <table class="table table-bordered mt-3" id="customerTable" style="width: 100%;">
                         <thead>
                             <tr>
                                 <th>Nama</th>
@@ -183,6 +183,10 @@
                 format: 'YYYY-MM-DD'
             }
         });
+        
+        $('#productTable').DataTable();
+        $('#customerTable').DataTable();
+        
 
         // Event ketika rentang tanggal dipilih
         $('#date-range-picker').on('apply.daterangepicker', function (ev, picker) {

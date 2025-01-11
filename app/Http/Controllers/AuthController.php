@@ -146,53 +146,61 @@ class AuthController extends Controller
         try {
             // Validasi file foto
             $request->validate([
-                'foto' => 'required|image|max:5048', // Aturan validasi, bisa disesuaikan
+                'foto' => 'required|image|mimes:jpeg,png,jpg,gif|max:5048', // Aturan validasi
             ]);
     
             $users = User::find(Auth::user()->id);
             if (!$users) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'user not found.'
+                    'message' => 'User not found.'
                 ], 404);
             }
-
-            $imageData = $request->file('foto');
-
+    
             if ($request->hasFile('foto')) {
-                $file = $imageData;
+                $file = $request->file('foto');
     
                 if ($file->isValid()) {
-                    $extension = $file->extension();
-                    $filename = time() . '.' . $extension;
+                    // Generate nama file unik
+                    $filename = $users->name.'_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
     
-                        // Menyimpan gambar ke direktori public
-                        $filePath = public_path('photo/' . $filename);
+                    // Path penyimpanan
+                    $destinationPath = public_path('photo');
     
-                        // Memastikan direktori penyimpanan ada
-                        if (!file_exists(public_path('photo'))) {
-                            mkdir(public_path('photo'), 0755, true);
-                        }
-        
-                        // Menyimpan gambar ke storage publik
-                        file_put_contents($filePath, $imageData);
-
+                    // Memastikan direktori penyimpanan ada
+                    if (!file_exists($destinationPath)) {
+                        mkdir($destinationPath, 0755, true);
+                    }
+    
+                    // Pindahkan file ke direktori penyimpanan
+                    $file->move($destinationPath, $filename);
+    
+                    // Hapus foto lama jika ada
+                    if ($users->foto && file_exists(public_path('photo/' . $users->foto))) {
+                        unlink(public_path('photo/' . $users->foto));
+                    }
+    
+                    // Simpan nama file ke database
                     $users->foto = $filename;
+                    $users->save();
+    
+                    return response()->json([
+                        'status' => 'success',
+                        'message' => 'Foto updated successfully.',
+                        'data' => $users // Menyertakan data user yang diperbarui
+                    ]);
                 } else {
                     return response()->json([
                         'status' => 'error',
                         'message' => 'Uploaded file is not valid.'
                     ], 400);
                 }
+            } else {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'No file uploaded.'
+                ], 400);
             }
-    
-            $users->save();
-    
-            return response()->json([
-                'status' => 'success',
-                'message' => 'foto updated successfully.',
-                'data' => $users // Menyertakan data karyawan yang diperbarui
-            ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'status' => 'error',
