@@ -37,14 +37,13 @@
                     <input type="number" id="quantity" name="quantity" value="1" min="1" class="form-control">
                 </div>
             
-                <button type="button" id="add-to-cart-btn" class="btn btn-primary">Tambah Keranjang</button>
+                <button type="button" id="add-to-cart-btn" class="btn btn-primary">Tambah</button>
             </form>
-            <div class="section-title mt-3">Pilihan</div>
             <hr>
 
             <!-- Cart Section -->
-            <h3>Keranjang Anda</h3>
-            <table class="table-responsive" id="cart-table" style="display: none;">
+            {{-- <h3>Keranjang Anda</h3> --}}
+            <table class="table-responsive" id="cart-table" style="display: none; width: 100%; border-collapse: collapse;">
                 <thead>
                     <tr>
                         <th>Produk</th>

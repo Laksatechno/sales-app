@@ -13,6 +13,9 @@ use App\Http\Controllers\PenawaranController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ShipmentController;
 use App\Http\Controllers\Api\ShopApiController;
+use App\Http\Controllers\Auth\ForgotPasswordController;
+use App\Http\Controllers\Auth\ResetPasswordController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -30,6 +33,20 @@ Route::middleware('guest')->group(function () {
         return view('auth.login');
     })->name('login');
 });
+
+Route::middleware(['auth', 'role:customer,superadmin'])->group(function () {
+    // Brosur
+    Route::resource('brochures', BrochureController::class);
+    Route::get('/brochures/{brochure}/download', [BrochureController::class, 'download'])
+        ->name('brochures.download');
+
+    Route::get('shipments', [ShipmentController::class, 'index'])->name('shipments.index');
+    Route::get('shipments/create/{id}', [ShipmentController::class, 'create'])->name('shipments.create');
+    Route::post('shipments', [ShipmentController::class, 'store'])->name('shipments.store');
+    Route::get('shipments/{id}', [ShipmentController::class, 'show'])->name('shipments.show');
+    Route::patch('shipments/{id}/update-status', [ShipmentController::class, 'updateStatus'])->name('shipments.updateStatus');
+});
+
 Route::group(['middleware' => ['auth']], function () {
     Route::get('/', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
@@ -57,10 +74,10 @@ Route::middleware(['auth', 'role:superadmin'])->group(function () {
     // Customer
     Route::resource('customers', CustomerController::class);
 
-    //brosur 
-    Route::resource('brochures', BrochureController::class);
-    Route::get('/brochures/{brochure}/download', [BrochureController::class, 'download'])
-    ->name('brochures.download');
+    // //brosur 
+    // Route::resource('brochures', BrochureController::class);
+    // Route::get('/brochures/{brochure}/download', [BrochureController::class, 'download'])
+    // ->name('brochures.download');
     
     //CustomerProductPrice
     Route::resource('customer-product-price', CustomerProductPriceController::class);
@@ -77,11 +94,7 @@ Route::middleware(['auth', 'role:superadmin'])->group(function () {
     Route::post('/reports/print', [ReportController::class, 'print'])->name('reports.print');
 
     // Route::resource('shipments', ShipmentController::class);
-    Route::get('shipments', [ShipmentController::class, 'index'])->name('shipments.index');
-    Route::get('shipments/create/{id}', [ShipmentController::class, 'create'])->name('shipments.create');
-    Route::post('shipments', [ShipmentController::class, 'store'])->name('shipments.store');
-    Route::get('shipments/{id}', [ShipmentController::class, 'show'])->name('shipments.show');
-    Route::patch('shipments/{id}/update-status', [ShipmentController::class, 'updateStatus'])->name('shipments.updateStatus');
+
 
     Route::group(['prefix' => 'penawaran'], function () {
         Route::get('/', [PenawaranController::class, 'index'])->name('penawaran.index');
@@ -122,6 +135,10 @@ Route::middleware(['auth', 'role:customer'])->group(function () {
 
     });
 
+    // Route::resource('brochures', BrochureController::class);
+    // Route::get('/brochures/{brochure}/download', [BrochureController::class, 'download'])
+    // ->name('brochures.download');
+
 
 });
 
@@ -131,3 +148,22 @@ Route::prefix('login')->group(function () {
     Route::post('/', [AuthController::class, 'login']);
 });
 Route::post('logout', [AuthController::class, 'logout'])->name('logout');
+
+// Registration Routes
+Route::prefix('register')->group(function () {
+    Route::get('/', [AuthController::class, 'showRegister'])->name('register');
+    Route::post('/', [AuthController::class, 'register']);
+});
+
+// Password Reset Routes
+// Route untuk menampilkan form lupa password
+Route::get('forgot-password', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
+
+// Route untuk mengirim email reset password
+Route::post('forgot-password', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
+
+// Route untuk menampilkan form reset password
+Route::get('reset-password/{token}', [ResetPasswordController::class, 'showResetForm'])->name('password.reset');
+
+// Route untuk memproses reset password
+Route::post('reset-password', [ResetPasswordController::class, 'reset'])->name('password.update');

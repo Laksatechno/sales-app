@@ -16,6 +16,10 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
+        $request->validate([
+            'email' => 'required|email',
+            'password' => 'required',
+        ]);
         $credentials = $request->only('email', 'password');
 
         if (Auth::attempt($credentials)) {
@@ -23,19 +27,67 @@ class AuthController extends Controller
             return view('dashboard');
         }
 
-        return back()->with('error', 'Invalid credentials');
+        return back()->with('error', 'Email atau Password Salah');
     }
 
     public function showRegister()
     {
-        return view('auth.register');
+        $marketings = User::where('role', 'marketing')->get();
+        return view('auth.register' , compact('marketings'));
     }
 
     public function register(Request $request)
     {
-        User::create($request->only(['name', 'email', 'password', 'role']));
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:8|confirmed',
+            'no_hp' => 'required|string|max:20',
+            'alamat' => 'required|string|max:255',
+            'tipe_pelanggan' => 'required|string|max:50',
+            'jenis_institusi' => 'required|string|max:50',
+            // 'marketing_id' => 'required|exists:marketings,id', // Pastikan marketing_id valid
+        ]);
+    
+        try {
+            $user = User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'no_hp' => $request->no_hp,
+                'address' => $request->alamat,
+                'role' => 'customer',
+                'tipe_pelanggan' => $request->tipe_pelanggan,
+                'jenis_institusi' => $request->jenis_institusi,
+                'marketing_id' => $request->marketing_id,
+                'password' => Hash::make($request->password),
+            ]);
+    
+            Auth::login($user);
+    
+            return redirect()->route('dashboard')->with('success', 'Registration successful');
+        } catch (\Exception $e) {
+            return redirect()->back()->withErrors(['error' => 'Registration failed. Please try again.']);
+        }
+    }
 
-        return redirect()->route('login')->with('success', 'Registration successful');
+    public function showresetpassword(){
+        return view('auth.passwords.reset');
+    }
+
+    public function reset(Request $request){
+        $request->validate([
+            'email' => 'required|string|email|max:255',
+            ]);
+            $user = User::where('email', $request->email)->first();
+            if($user){
+                $user->update([
+                    'password' => Hash::make($request->password),
+                    ]);
+                    return redirect()->route('login')->with('success', 'Password reset successful');
+                    }else{
+                        return redirect()->back()->withErrors(['error' => 'Email not found']);
+                        }
+                        
     }
 
     public function logout()
@@ -44,6 +96,7 @@ class AuthController extends Controller
 
         return redirect()->route('login');
     }
+
 
     public function profile()
     {

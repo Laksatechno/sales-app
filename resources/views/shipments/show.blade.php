@@ -66,9 +66,9 @@
                                     @else
                                         <p>Tidak ada bukti pengiriman yang tersedia.</p>
                                     @endif
-                                        <div class="modal-footer">
+                                        <div class="modal-footer ">
                                             <div class="btn-inline">
-                                                <a href="#" class="btn btn-text-secondary" data-bs-dismiss="modal">TUTUP</a>
+                                                <a href="#" class="btn btn-text-secondary btn-sm" data-bs-dismiss="modal">TUTUP</a>
                                             </div>
                                         </div>
                                     </div>

@@ -46,20 +46,24 @@
         <h4>Isi formulir untuk masuk</h4>
     </div>
     <div class="section mb-5 p-2">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
+                @if(session('error'))
+                <div class="alert alert-danger mt-3 text-center pb-1">
+                    {{ session('error') }}
+                </div>
+                @endif 
             <div class="card">
                 <div class="card-header">{{ __('Login') }}</div>
 
-                <div class="card-body">
+                <div class="card-body pb-1">
                     <form method="POST" action="{{ route('login') }}">
                         @csrf
 
-                        <div class="row mb-3">
+                        <div class="form-group basic">
+                            <div class="input-wrapper">
                             <label for="email" class="col-md-4 col-form-label text-md-end">{{ __('Email Address') }}</label>
 
                             <div class="col-md-6">
-                                <input id="email" type="email" class="form-control @error('email') is-invalid @enderror" name="email" value="{{ old('email') }}" required autocomplete="email" autofocus>
+                                <input id="email" type="email" class="form-control @error('email') is-invalid @enderror" name="email" value="{{ old('email') }}" autocomplete="email" autofocus>
 
                                 @error('email')
                                     <span class="invalid-feedback" role="alert">
@@ -68,12 +72,14 @@
                                 @enderror
                             </div>
                         </div>
+                        </div>
 
-                        <div class="row mb-3">
+                        <div class="form-group basic">
+                            <div class="input-wrapper">
                             <label for="password" class="col-md-4 col-form-label text-md-end">{{ __('Password') }}</label>
 
                             <div class="col-md-6">
-                                <input id="password" type="password" class="form-control @error('password') is-invalid @enderror" name="password" required autocomplete="current-password">
+                                <input id="password" type="password" class="form-control @error('password') is-invalid @enderror" name="password" autocomplete="current-password">
 
                                 @error('password')
                                     <span class="invalid-feedback" role="alert">
@@ -82,8 +88,9 @@
                                 @enderror
                             </div>
                         </div>
+                        </div>
 
-                        <div class="row mb-3">
+                        <div class="form-basic">
                             <div class="col-md-6 offset-md-4">
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" name="remember" id="remember" {{ old('remember') ? 'checked' : '' }}>
@@ -95,23 +102,35 @@
                             </div>
                         </div>
 
-                        <div class="row mb-0">
-                            <div class="col-md-8 offset-md-4">
-                                <button type="submit" class="btn btn-primary">
-                                    {{ __('Login') }}
-                                </button>
+                        <div class="form-links mt-2">
+                            <div>
+                                <a href="register">Mendaftar</a>
+                            </div>
+                            <div><a href="forgot-password" class="text-muted">Lupa Password?</a></div>
+                        </div>
 
-                                @if (Route::has('password.request'))
+
+
+                        <div class="form-boxed">
+                            <div class="col-md-8 offset-md-4">
+                                {{-- <button type="submit" class="btn btn-primary">
+                                    {{ __('Login') }}
+                                </button> --}}
+
+                                <div class="form-button-group transparent">
+                                    <button type="submit" class="btn btn-primary btn-block"><ion-icon name="log-in-outline"></ion-icon> Masuk</button>
+                                 </div>
+
+                                {{-- @if (Route::has('password.request'))
                                     <a class="btn btn-link" href="{{ route('password.request') }}">
                                         {{ __('Forgot Your Password?') }}
                                     </a>
-                                @endif
+                                @endif --}}
                             </div>
                         </div>
                     </form>
                 </div>
             </div>
-        </div>
-    </div>
+
     </div>
 </div>

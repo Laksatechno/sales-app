@@ -184,8 +184,8 @@
             }
         });
         
-        $('#productTable').DataTable();
-        $('#customerTable').DataTable();
+        // $('#productTable').DataTable();
+        // $('#customerTable').DataTable();
         
 
         // Event ketika rentang tanggal dipilih
