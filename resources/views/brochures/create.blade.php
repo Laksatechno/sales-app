@@ -25,7 +25,7 @@
             <label for="file">File Brosur</label>
             <input type="file" name="file" id="file" class="form-control" required>
         </div>
-        <button type="submit" class="btn btn-primary mt-3">SIMPAN</button>
+        <button type="submit" class="btn btn-primary btn-block mt-3">SIMPAN</button>
     </form>
         </div>
     </div>

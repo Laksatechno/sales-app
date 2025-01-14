@@ -122,10 +122,10 @@
                 @foreach ($details as $detail )
                     <tr>
                         <td align="center" scope="row">{{ $detail->product->name }}</td>
-                        <td align="center">Rp {{ number_format($detail->price, 2) }}</td>
+                        <td align="center">Rp {{ number_format($detail->price) }}</td>
                         <td align="center">{{ $detail->quantity }}</td>
-                        <td align="center">Rp {{ number_format($detail->diskon, 2) }}</td>
-                        <td align="center">Rp {{ number_format($detail->total, 2) }}</td>
+                        <td align="center">Rp {{ number_format($detail->diskon) }}</td>
+                        <td align="center">Rp {{ number_format($detail->total) }}</td>
                     </tr>
                 @endforeach
                 @php
@@ -145,19 +145,26 @@
                 
                 <tr>
                     <th colspan="4" align="left">Subtotal</th>
-                    <td align ="right">Rp{{ number_format($sale->total, 2)}} </td>
+                    <td align ="right">Rp{{ number_format($sale->total)}} </td>
+                </tr>
+                <tr>
+                    <th colspan="4" align="left">DPP Nilai Lain</th>
+                    <td align ="right">Rp{{number_format((($sale->total*11)/12)) }} </td>
+                    @php
+                        $taxdpp = ((($sale->total*11)/12)*0.12);
+                    @endphp
                 </tr>
                 <tr>
                     <th>Tax</th>
                     <td></td>
                     <td colspan="2">12%</td>
-                    <td align ="right">Rp {{ number_format($sale->tax, 2) }}</td>
+                    <td align ="right">Rp {{ number_format($taxdpp) }}</td>
                 </tr>
             </tbody>
             <tfoot>
                 <tr>
                     <th colspan="4" align="left">Total Price</th>
-                    <td align ="right">Rp {{ number_format($sale->total + $sale->tax)}}</td>
+                    <td align ="right">Rp {{ number_format($sale->total + $taxdpp )}}</td>
                 </tr>
                 <tr>
                     <th colspan="2" align="center">Penerima</th>

@@ -3,26 +3,30 @@
     @include('layouts.appheaderback')
 @endsection
 @section('content')
-<div class="container mt-5">
-    <h1>Edit Brochure</h1>
+<div class="section mt-2">
+    <div class="section-heading">
+    <h1>Edit Brosur</h1>
+    </div>
+    <div class ="card p-3">
     <form id="editBrochureForm" enctype="multipart/form-data">
         @csrf
         @method('PUT')
         <div class="form-group">
-            <label for="title">Title</label>
+            <label for="title">Judul</label>
             <input type="text" name="title" id="title" class="form-control" value="{{ $brochure->title }}" required>
         </div>
         <div class="form-group">
-            <label for="description">Description</label>
+            <label for="description">Deskripsi</label>
             <textarea name="description" id="description" class="form-control">{{ $brochure->description }}</textarea>
         </div>
         <div class="form-group">
-            <label for="file">File</label>
+            <label for="file">File Brosur</label>
             <input type="file" name="file" id="file" class="form-control">
             {{-- <small>Current file: <a href="{{ route('brochures.download', $brochure) }}">{{ $brochure->file }}</a></small> --}}
         </div>
         <button type="submit" class="btn btn-primary mt-3">Update</button>
     </form>
+    </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

@@ -8,7 +8,7 @@
             <!-- Balance -->
             <div class="balance">
                 <div class="left">
-                    <h1 class="total"> {{ auth()->user()->name }}</h1>
+                    <h5> {{ auth()->user()->name }}</h5>
                 </div>
             </div>
             <!-- * Balance -->

@@ -4,7 +4,6 @@
 @endsection
 @section('content')
 <div class="section mt-2">
-    <div class="card">
         <div class="card-body table-responsive">
             <h2>Pengiriman</h2>
 
@@ -103,7 +102,6 @@
                 </tbody>
             </table> --}}
         </div>
-    </div>
 </div>
 
 <!-- Modal untuk Update Status -->
