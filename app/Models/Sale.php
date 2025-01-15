@@ -39,4 +39,9 @@ class Sale extends Model
         return $this->hasOne(Shipment::class);
     }
 
+    public function payment()
+    {
+        return $this->hasOne(Payment::class, 'sales_id');
+    }
+
 }

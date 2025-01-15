@@ -118,6 +118,8 @@ Route::middleware(['auth', 'role:customer'])->group(function () {
         return view('dashboard');
     })->name('dashboard');
 
+
+
     // Shop Routes
     Route::prefix('shop')->name('shop.')->group(function () {
         Route::get('/', [CustomerPurchaseController::class, 'index'])->name('index');
@@ -132,8 +134,8 @@ Route::middleware(['auth', 'role:customer'])->group(function () {
         Route::get('edit/editjson/{id}', [ShopApiController::class, 'editjson'])->name('editjson');
         Route::delete('edit/shop/delete-detail/{id}', [ShopApiController::class, 'deleteDetail']);
         Route::post('edit/shop/update/{id}', [ShopApiController::class, 'update'])->name('shop.update');
-
     });
+    Route::post('/payment/{id}', [SaleController::class, 'payment'])->name('payment.store');
 
     // Route::resource('brochures', BrochureController::class);
     // Route::get('/brochures/{brochure}/download', [BrochureController::class, 'download'])

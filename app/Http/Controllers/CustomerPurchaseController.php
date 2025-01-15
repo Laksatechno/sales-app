@@ -151,7 +151,7 @@ class CustomerPurchaseController extends Controller
     public function riwayat()
     {
         $customer = Auth::user()->id;
-        $sales = Sale::with('details.product', 'customer', 'user' ,'shipment')->where('user_customer_id', $customer)->get();
+        $sales = Sale::with('details.product', 'customer', 'user' ,'shipment', 'payment')->where('user_customer_id', $customer)->get();
         // dd($sales);
         return view('shop.riwayat', compact('sales'));
     }

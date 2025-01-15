@@ -36,7 +36,12 @@
                                 <td>Rp. {{ number_format($sale->total, 2) }}</td>
                                 <td>Rp. {{ $sale->tax_status == 'ppn' ? number_format($sale->tax, 2) : '0' }}</td>
                                 <td>{{ $sale->due_date ?? 'COD'}} </td>
-                                <td>{{ ucfirst($sale->status) }}</td>
+                                <td>{{ ucfirst($sale->status) }} 
+                                    @if ($sale->payment) <!-- Periksa apakah ada relasi payment -->
+                                    <span class="badge bg-success">Terbayar</span>
+                                    {{-- @else
+                                        <span class="badge bg-danger">Belum Bayar</span> --}}
+                                    @endif
                                 <td>
                                     <!-- Tombol Dropdown -->
                                     <div class="dropdown">

@@ -7,6 +7,7 @@ use App\Models\SaleDetail;
 use App\Models\Product;
 use App\Models\Customer;
 use App\Models\CustomerProductPrice;
+use App\Models\Payment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
@@ -17,7 +18,7 @@ class SaleController extends Controller
     public function index()
     {
         // Ambil data penjualan dan tampilkan di view
-        $sales = Sale::with('customer', 'user', 'details','users', 'shipment')->get();
+        $sales = Sale::with('customer', 'user', 'details','users', 'shipment' , 'payment')->get();
         return view('sales.index', compact('sales'));
     }
 
@@ -224,8 +225,85 @@ class SaleController extends Controller
     return redirect()->route('sales.index')->with('success', 'Penjualan berhasil diperbarui.');
 }
 
-    public function destroy(Sale $sale){
+    public function destroy(Sale $sale)
+    {
+        // Ambil semua detail penjualan yang terkait dengan sale
+        $details = $sale->details;
+
+        // Kembalikan stok produk berdasarkan quantity di sale_details
+        foreach ($details as $detail) {
+            $product = Product::find($detail->product_id);
+            if ($product) {
+                $product->stock += $detail->quantity; // Tambahkan kembali quantity ke stok
+                $product->save();
+            }
+        }
+
+        // Hapus penjualan
         $sale->delete();
+
         return redirect()->route('sales.index')->with('success', 'Penjualan berhasil dihapus.');
+    }
+
+    public function payment(Request $request, $id) {
+        // Validasi input
+        $request->validate([
+            'photo' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'pph' => 'nullable|file|mimes:pdf,doc,docx|max:2048',
+            'ppn' => 'nullable|file|mimes:pdf,doc,docx|max:2048',
+        ]);
+
+        // Cari data penjualan berdasarkan ID
+        $sale = Sale::findOrFail($id);
+
+        // Unggah foto bukti pembayaran
+        if ($request->hasFile('photo')) {
+            $photo = $request->file('photo');
+            $photoName = time() . '_' . $photo->getClientOriginalName();
+            $photo->move(public_path('payment'), $photoName);
+            $photoPath = 'payment/' . $photoName;
+        } else {
+            return response()->json([
+                'success' => false,
+                'message' => 'File foto bukti pembayaran wajib diunggah.'
+            ], 400);
+        }
+
+        // Unggah file PPH (jika ada)
+        $pphPath = null;
+        if ($request->hasFile('pph')) {
+            $pph = $request->file('pph');
+            $pphName = time() . '_' . $pph->getClientOriginalName();
+            $pph->move(public_path('payment'), $pphName);
+            $pphPath = 'payment/' . $pphName;
+        }
+
+        // Unggah file PPN (jika ada)
+        $ppnPath = null;
+        if ($request->hasFile('ppn')) {
+            $ppn = $request->file('ppn');
+            $ppnName = time() . '_' . $ppn->getClientOriginalName();
+            $ppn->move(public_path('payment'), $ppnName);
+            $ppnPath = 'payment/' . $ppnName;
+        }
+
+        // Simpan data pembayaran ke database
+        Payment::create([
+            'sales_id' => $sale->id,
+            'photo' => $photoPath,
+            'pph' => $pphPath,
+            'ppn' => $ppnPath,
+        ]);
+
+        // // Update status penjualan menjadi "complete"
+        // $sale->update([
+        //     'status' => 'complete',
+        // ]);
+
+        // Kembalikan respons JSON
+        return response()->json([
+            'success' => true,
+            'message' => 'Penjualan berhasil dibayar.'
+        ], 200);
     }
 }
