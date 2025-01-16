@@ -67,6 +67,7 @@ Route::middleware(['auth', 'role:superadmin'])->group(function () {
     
     // Penjualan
     Route::resource('sales', SaleController::class);
+    Route::put('/sales/{id}/update-status', [SaleController::class, 'updateStatus'])->name('sales.updateStatus');
     
     // Barang
     Route::resource('products', ProductController::class);

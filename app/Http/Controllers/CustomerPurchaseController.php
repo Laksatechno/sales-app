@@ -7,10 +7,13 @@ use App\Models\CustomerProductPrice;
 use App\Models\Sale;
 use App\Models\Customer;
 use App\Models\SaleDetail;
+use Carbon\Carbon;
 use App\Models\User;
 use App\Models\UserCustomerProductPrice;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+
 
 class CustomerPurchaseController extends Controller
 {
@@ -84,74 +87,114 @@ class CustomerPurchaseController extends Controller
     }
 
     
-
+    
     public function checkout(Request $request)
     {
+        // Ambil data keranjang dari session
         $cart = session('cart', []);
+    
+        // Cek jika keranjang kosong
         if (empty($cart)) {
             return redirect()->route('shop.index')->with('error', 'Keranjang belanja kosong.');
         }
     
+        // Hitung total belanja
         $total = array_sum(array_column($cart, 'total'));
+    
+        // Ambil data customer dan marketing
         $customer = Auth::user()->id;
-        
-        $user = $customer; // Simpan data user ke variabel $user
-
-        // Cek jika jenis_institusi adalah 'pmi'
-        if (Auth::user()->jenis_institusi == 'pmi') {
-            $taxstatus = 'non-ppn'; // Set tax_status menjadi 'non-ppn'
-        } else {
-            $taxstatus = 'ppn'; // Jika bukan 'pmi', set tax_status menjadi 'ppn' (atau nilai default lainnya)
-        }
-
-        if (Auth::user()->tipe_pelanggan == 'subdis') {
-            $due_date = null; 
-        } else {
-            $due_date = now()->addMonth(1); 
-        }
-
-        $sale = Sale::create([
-            'invoice_number' => 'INV-' . time(),
-            'user_customer_id' => $customer,
-            'user_id' => $customer = Auth::user()->marketing_id,
-            'total' => $total,
-            'tax' => 0,
-            'diskon' => 0,
-            'tax_status' =>  $taxstatus,
-            'due_date' => $due_date,
-            'status' => 'pending',
-        ]);
+        $marketingId = Auth::user()->marketing_id;
     
-        foreach ($cart as $productId => $item) {
-            SaleDetail::create([
-                'sale_id' => $sale->id,
-                'product_id' => $productId,
-                'quantity' => $item['quantity'],
-                'price' => $item['price'],
-                'total' => $item['total'],
+        // Tentukan tax_status berdasarkan jenis_institusi
+        $taxstatus = (Auth::user()->jenis_institusi == 'pmi') ? 'non-ppn' : 'ppn';
+    
+        // Tentukan due_date berdasarkan tipe_pelanggan
+        $dueDate = (Auth::user()->tipe_pelanggan == 'subdis') ? null : now()->addMonth(1);
+    
+        // Generate invoice number
+        $currentYear = Carbon::now()->year;
+        $latestInvoice = Sale::whereYear('created_at', $currentYear)
+            ->orderBy('invoice_number', 'desc')
+            ->first();
+    
+        if (empty($latestInvoice) || date('Y', strtotime($latestInvoice->created_at)) !== $currentYear) {
+            $id = 1;
+        } else {
+            $id = (int)$latestInvoice->invoice_number + 1;
+        }
+    
+        $invoiceNumber = str_pad($id, 4, '0', STR_PAD_LEFT); // Format 4 digit
+    
+        // Pastikan invoice_number unik
+        while (Sale::where('invoice_number', $invoiceNumber)->exists()) {
+            $id++;
+            $invoiceNumber = str_pad($id, 4, '0', STR_PAD_LEFT);
+        }
+    
+        // Mulai transaksi database
+        DB::beginTransaction();
+    
+        try {
+            // Simpan data penjualan
+            $sale = Sale::create([
+                'invoice_number' => $invoiceNumber,
+                'user_customer_id' => $customer,
+                'user_id' => $marketingId,
+                'total' => $total,
+                'tax' => 0,
+                'diskon' => 0,
+                'tax_status' => $taxstatus,
+                'due_date' => $dueDate,
+                'status' => 'pending',
             ]);
-
-        }
-                // Kurangi stok produk
-                $product = Product::find($productId);
-                if ($product) {
-                    if ($product->stock < $item['quantity']) {
-                        return redirect()->route('shop.index')->with('error', "Stok produk {$product->name} tidak mencukupi.");
-                    }
-        
-                    $product->stock -= $item['quantity'];
-                    $product->save();
-                }
-
     
-        session()->forget('cart');
-        return redirect()->route('shop.index')->with('success', 'Pembelian berhasil.');
+            // Simpan detail penjualan dan kurangi stok produk
+            foreach ($cart as $productId => $item) {
+                // Cari produk berdasarkan ID
+                $product = Product::find($productId);
+    
+                if (!$product) {
+                    throw new \Exception("Produk dengan ID {$productId} tidak ditemukan.");
+                }
+    
+                // Periksa stok produk
+                if ($product->stock < $item['quantity']) {
+                    throw new \Exception("Stok produk {$product->name} tidak mencukupi.");
+                }
+    
+                // Kurangi stok produk
+                $product->decrement('stock', $item['quantity']);
+    
+                // Simpan detail penjualan
+                SaleDetail::create([
+                    'sale_id' => $sale->id,
+                    'product_id' => $productId,
+                    'quantity' => $item['quantity'],
+                    'price' => $item['price'],
+                    'total' => $item['total'],
+                ]);
+            }
+    
+            // Commit transaksi jika semua operasi berhasil
+            DB::commit();
+    
+            // Hapus keranjang belanja dari session
+            session()->forget('cart');
+    
+            return redirect()->route('shop.index')->with('success', 'Pembelian berhasil.');
+        } catch (\Exception $e) {
+            // Rollback transaksi jika terjadi error
+            DB::rollBack();
+    
+            // Kembalikan pesan error
+            return redirect()->route('shop.index')->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
     }
     
     public function riwayat()
     {
         $customer = Auth::user()->id;
-        $sales = Sale::with('details.product', 'customer', 'user' ,'shipment', 'payment')->where('user_customer_id', $customer)->get();
+        $sales = Sale::with('details.product', 'customer', 'user' ,'shipment', 'payment')->where('user_customer_id', $customer)->orderBy('created_at', 'desc')->get();
         // dd($sales);
         return view('shop.riwayat', compact('sales'));
     }

@@ -9,6 +9,7 @@ use App\Models\Customer;
 use App\Models\CustomerProductPrice;
 use App\Models\Payment;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -41,102 +42,123 @@ class SaleController extends Controller
     }
 
 
+    
     public function store(Request $request)
     {
+        // Validasi input
         $request->validate([
             'customer_id' => 'required|exists:customers,id',
             'tax_status' => 'required|in:non-ppn,ppn',
             'items' => 'required|json',
         ]);
     
+        // Decode items dari JSON ke array
         $items = json_decode($request->items, true);
     
         if (empty($items)) {
             return back()->withErrors(['items' => 'Tidak ada barang yang ditambahkan.'])->withInput();
         }
-
-        $totalSale = 0;
-        foreach ($items as $item) {
-            // Cari produk berdasarkan ID dari item
-            $product = Product::find($item['product_id']);
-            
-            if ($product) {
-                // Periksa apakah stok mencukupi
-                if ($product->stock >= $item['quantity']) {
-                    // Kurangi stok berdasarkan jumlah yang dibeli
-                    $product->decrement('stock', $item['quantity']);
-                } else {
-                    return response()->json(['error' => 'Stok tidak mencukupi untuk produk: ' . $product->name], 400);
+    
+        // Mulai transaksi database
+        DB::beginTransaction();
+    
+        try {
+            $totalSale = 0;
+            foreach ($items as $item) {
+                // Cari produk berdasarkan ID dari item
+                $product = Product::find($item['product_id']);
+    
+                if (!$product) {
+                    throw new \Exception('Produk tidak ditemukan dengan ID: ' . $item['product_id']);
                 }
-            } else {
-                return response()->json(['error' => 'Produk tidak ditemukan dengan ID: ' . $item['product_id']], 404);
+    
+                // Periksa apakah stok mencukupi
+                if ($product->stock < $item['quantity']) {
+                    throw new \Exception('Stok tidak mencukupi untuk produk: ' . $product->name);
+                }
+    
+                // Kurangi stok berdasarkan jumlah yang dibeli
+                $product->decrement('stock', $item['quantity']);
+    
+                // Hitung total penjualan
+                $item['total'] = $item['quantity'] * $item['price'];
+                $totalSale += $item['total'];
             }
-        
-            // Hitung total penjualan
-            $item['total'] = $item['quantity'] * $item['price'];
-            $totalSale += $item['total'];
-        }
-                // Hitung diskon
-        $diskonPercentage = $request->diskon;
-        $diskonAmount = ($diskonPercentage / 100) * $totalSale;
-        // dd($stock);
     
-        // Hitung pajak jika tax_status adalah 'ppn'
-        $tax = 0;
-        if ($request->tax_status === 'ppn') {
-            $tax = $totalSale * 0.12; // 12% pajak
-        }
+            // Hitung diskon
+            $diskonPercentage = $request->diskon;
+            $diskonAmount = ($diskonPercentage / 100) * $totalSale;
     
-        // Ambil tahun saat ini
-        $currentYear = Carbon::now()->year;
+            // Hitung pajak jika tax_status adalah 'ppn'
+            $tax = 0;
+            if ($request->tax_status === 'ppn') {
+                $tax = $totalSale * 0.12; // 12% pajak
+            }
     
-        // Cari invoice terakhir pada tahun yang sama
-        $lastInvoice = Sale::whereYear('created_at', $currentYear)
-            ->orderBy('invoice_number', 'desc')
-            ->first();
+            // Generate invoice number
+            $currentYear = Carbon::now()->year;
+            $latestInvoice = Sale::whereYear('created_at', $currentYear)
+                ->orderBy('invoice_number', 'desc')
+                ->first();
     
-        // Tentukan nomor urut berdasarkan invoice terakhir
-        $newInvoiceNumber = 1;
-        if ($lastInvoice) {
-            $lastInvoiceNumber = explode('-', $lastInvoice->invoice_number);
-            $newInvoiceNumber = intval(end($lastInvoiceNumber)) + 1;
-        }
+            if (empty($latestInvoice) || date('Y', strtotime($latestInvoice->created_at)) !== $currentYear) {
+                $id = 1;
+            } else {
+                $id = (int)$latestInvoice->invoice_number + 1;
+            }
     
-        // Format invoice number sesuai dengan format INV-YYYY-XXX
-        $invoiceNumber = 'INV-' . $currentYear . '-' . str_pad($newInvoiceNumber, 3, '0', STR_PAD_LEFT);
+            $invoiceNumber = str_pad($id, 4, '0', STR_PAD_LEFT); // Format 4 digit
     
-        if ($request->due_date === '1') {
-            $dueDate = now()->addMonth();
-        } elseif ($request->due_date === '2') {
-            $dueDate = now()->addMonth(2);
-        } else {
+            // Pastikan invoice_number unik
+            while (Sale::where('invoice_number', $invoiceNumber)->exists()) {
+                $id++;
+                $invoiceNumber = str_pad($id, 4, '0', STR_PAD_LEFT);
+            }
+    
+            // Tentukan due_date
             $dueDate = null;
-        }
-
-        // Simpan data penjualan
-        $sale = Sale::create([
-            'customer_id' => $request->customer_id,
-            'user_id' => auth()->id(),
-            'total' => $totalSale,
-            'tax_status' => $request->tax_status,
-            'due_date' => $dueDate,
-            'status' => 'pending',
-            'invoice_number' => $invoiceNumber,
-            'tax' => $tax,
-            'diskon' => $diskonAmount
-        ]);
+            if ($request->due_date === '1') {
+                $dueDate = now()->addMonth();
+            } elseif ($request->due_date === '2') {
+                $dueDate = now()->addMonth(2);
+            }
     
-        // Simpan detail penjualan
-        foreach ($items as $item) {
-            $sale->details()->create([
-                'product_id' => $item['product_id'],
-                'quantity' => $item['quantity'],
-                'price' => $item['price'],
-                'total' => $item['total'],
+            // Simpan data penjualan
+            $sale = Sale::create([
+                'customer_id' => $request->customer_id,
+                'user_id' => auth()->id(),
+                'total' => $totalSale,
+                'tax_status' => $request->tax_status,
+                'due_date' => $dueDate,
+                'status' => 'pending',
+                'invoice_number' => $invoiceNumber,
+                'tax' => $tax,
+                'diskon' => $diskonAmount,
             ]);
-        }
     
-        return redirect()->route('sales.index')->with('success', 'Penjualan berhasil dibuat.');
+            // Simpan detail penjualan
+            foreach ($items as $item) {
+                $sale->details()->create([
+                    'product_id' => $item['product_id'],
+                    'quantity' => $item['quantity'],
+                    'price' => $item['price'],
+                    'total' => $item['total'],
+                ]);
+            }
+    
+            // Commit transaksi jika semua operasi berhasil
+            DB::commit();
+    
+            return redirect()->route('sales.index')->with('success', 'Penjualan berhasil dibuat.');
+        } catch (\Exception $e) {
+            // Rollback transaksi jika terjadi error
+            DB::rollBack();
+    
+            // Log error untuk debugging
+            Log::error('Error saat membuat penjualan: ' . $e->getMessage());
+    
+            return back()->withErrors(['error' => 'Terjadi kesalahan: ' . $e->getMessage()])->withInput();
+        }
     }
     
     
@@ -305,5 +327,27 @@ class SaleController extends Controller
             'success' => true,
             'message' => 'Penjualan berhasil dibayar.'
         ], 200);
+    }
+
+    public function updateStatus(Request $request, $id)
+    {
+        // Validasi input
+        $request->validate([
+            'status' => 'required|in:pending,completed',
+        ]);
+
+        // Cari data sale berdasarkan ID
+        $sale = Sale::findOrFail($id);
+
+        // Update status
+        $sale->update([
+            'status' => $request->status,
+        ]);
+
+        // Kembalikan respons JSON
+        return response()->json([
+            'success' => true,
+            'message' => 'Status berhasil diperbarui.',
+        ]);
     }
 }

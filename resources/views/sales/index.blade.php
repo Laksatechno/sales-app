@@ -16,7 +16,7 @@
         @endif
         <div class="card">
             <div class="card-body table-responsive">
-                <table class="table mt-3" id="salesTable" style=" width: 100%;">
+                <table class="table mt-3" id="salesTable"  style=" width: 100%;">
                     <thead>
                         <tr>
                             <th>No. Invoice</th>
@@ -33,15 +33,17 @@
                             <tr>
                                 <td>{{ $sale->invoice_number }}</td>
                                 <td>{{ $sale->customer->name ?? $sale->users->name }}</td>
-                                <td>Rp. {{ number_format($sale->total, 2) }}</td>
-                                <td>Rp. {{ $sale->tax_status == 'ppn' ? number_format($sale->tax, 2) : '0' }}</td>
+                                <td>Rp. {{ number_format($sale->total) }}</td>
+                                <td>Rp. {{ $sale->tax_status == 'ppn' ? number_format($sale->tax) : '0' }}</td>
                                 <td>{{ $sale->due_date ?? 'COD'}} </td>
-                                <td>{{ ucfirst($sale->status) }} 
+                                <td>
+                                    {{ ucfirst($sale->status) }}
                                     @if ($sale->payment) <!-- Periksa apakah ada relasi payment -->
-                                    <span class="badge bg-success">Terbayar</span>
-                                    {{-- @else
-                                        <span class="badge bg-danger">Belum Bayar</span> --}}
+                                        <span class="badge bg-success" style="cursor: pointer;" data-toggle="modal" data-target="#paymentDetailModal{{ $sale->id }}">
+                                            Terbayar
+                                        </span>
                                     @endif
+                                </td>
                                 <td>
                                     <!-- Tombol Dropdown -->
                                     <div class="dropdown">
@@ -87,10 +89,108 @@
         </div>
     </div>
 
+<!-- Modal untuk Menampilkan Data Payment -->
+<div class="modal fade" id="paymentDetailModal{{ $sale->id }}" tabindex="-1" role="dialog" aria-labelledby="paymentDetailModalLabel{{ $sale->id }}" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="paymentDetailModalLabel{{ $sale->id }}">Detail Pembayaran</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Tampilkan Data Payment -->
+                @if ($sale->payment)
+                    <div class="form-group">
+                        <label>Bukti Pembayaran (Photo)</label>
+                        <img src="{{ asset($sale->payment->photo) }}" alt="Bukti Pembayaran" style="max-width: 100%; height: auto;">
+                    </div>
+                    <div class="form-group">
+                        <label>File PPN</label>
+                        <a href="{{ asset($sale->payment->pph) }}" target="_blank" class="btn btn-link">Lihat File PPN</a>
+                    </div>
+                    <div class="form-group">
+                        <label>File PPH</label>
+                        <a href="{{ asset($sale->payment->ppn) }}" target="_blank" class="btn btn-link">Lihat File PPH</a>
+                    </div>
+                @else
+                    <p>Tidak ada data pembayaran.</p>
+                @endif
+
+                <!-- Form untuk Mengubah Status -->
+                <form id="updateStatusForm{{ $sale->id }}" action="{{ route('sales.updateStatus', $sale->id) }}" method="POST">
+                    @csrf
+                    @method('PUT')
+                    <div class="form-group">
+                        <label for="status{{ $sale->id }}">Status</label>
+                        <select class="form-control" id="status{{ $sale->id }}" name="status">
+                            <option value="pending" {{ $sale->status == 'pending' ? 'selected' : '' }}>Pending</option>
+                            <option value="completed" {{ $sale->status == 'completed' ? 'selected' : '' }}>Complete</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @push ('custom-scripts')
     <script>
         $(document).ready(function() {
             $('#salesTable').DataTable();
+        });
+    </script>
+    <script>
+        // Tangani submit form update status
+        document.querySelectorAll('form[id^="updateStatusForm"]').forEach(form => {
+            form.addEventListener('submit', function(event) {
+                event.preventDefault(); // Mencegah form submit default
+    
+                fetch(form.action, {
+                    method: 'POST',
+                    body: new FormData(form),
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil!',
+                            text: data.message,
+                            showConfirmButton: false,
+                            timer: 3000
+                        }).then(() => {
+                            window.location.reload(); // Reload halaman setelah sukses
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Gagal!',
+                            text: data.message,
+                            showConfirmButton: false,
+                            timer: 3000
+                        });
+                    }
+                })
+                .catch(error => {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal!',
+                        text: 'Terjadi kesalahan saat mengirim data.',
+                        showConfirmButton: false,
+                        timer: 3000
+                    });
+                });
+            });
         });
     </script>
 @endpush
