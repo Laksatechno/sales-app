@@ -107,7 +107,8 @@ class CustomerPurchaseController extends Controller
     
         // Tentukan tax_status berdasarkan jenis_institusi
         $taxstatus = (Auth::user()->jenis_institusi == 'pmi') ? 'non-ppn' : 'ppn';
-    
+        
+        // dd($taxstatus);
         // Tentukan due_date berdasarkan tipe_pelanggan
         $dueDate = (Auth::user()->tipe_pelanggan == 'subdis') ? null : now()->addMonth(1);
     
@@ -137,11 +138,12 @@ class CustomerPurchaseController extends Controller
         try {
 
             $tax = 0;
-            if ($request->tax_status === 'ppn') {
+            if (Auth::user()->jenis_institusi == 'non-pmi') {
                 $dpp = ceil($total*11)/12;
                 $tax = $dpp * 0.12; // 12% pajak
             }
 
+            // dd($tax);
 
             // Simpan data penjualan
             $sale = Sale::create([

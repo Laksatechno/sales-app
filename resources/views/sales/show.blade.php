@@ -31,7 +31,7 @@
                     <th>Rincian</th>
                     <td>
                         @foreach ($sale->details as $detail)
-                            <p>{{ $detail->product->name }} {{ $detail->quantity }}x {{ number_format($detail->price, 2) }}</p>
+                            <p>{{ $detail->product->name }} {{ $detail->quantity }}x {{ number_format($detail->price) }}</p>
                             <p></p>
                             <p></p>
                         @endforeach
@@ -42,8 +42,12 @@
                     <td>{{ $sale->tax_status == 'ppn' ? number_format($sale->tax) : '0' }}</td>
                 </tr>
                 <tr>
+                    <th>SubTotal</th>
+                    <td>{{ number_format($sale->total) }}</td>
+                </tr>
+                <tr>
                     <th>Total</th>
-                    <td>{{ number_format($sale->total, 2) }}</td>
+                    <td>{{ number_format($sale->total + $sale->tax) }}</td>
                 </tr>
             </table>
 
