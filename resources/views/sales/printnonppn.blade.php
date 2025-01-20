@@ -145,26 +145,29 @@
                 
                 <tr>
                     <th colspan="4" align="left">Subtotal</th>
-                    <td align ="right">Rp{{ number_format($sale->total)}} </td>
+                    <td align ="right">Rp{{ number_format($sale->total) }} </td>
                 </tr>
+                @if ($sale->tax_status == 'ppn')
                 <tr>
                     <th colspan="4" align="left">DPP Nilai Lain</th>
-                    <td align ="right">Rp{{number_format((($sale->total*11)/12)) }} </td>
-                    @php
-                        $taxdpp = ((($sale->total*11)/12)*0.12);
-                    @endphp
+                    <td align ="right">Rp{{number_format(ceil(($sale->total*11)/12)) }} </td>
                 </tr>
+                @endif
                 <tr>
                     <th>Tax</th>
                     <td></td>
                     <td colspan="2">12%</td>
-                    <td align ="right">Rp {{ number_format($taxdpp) }}</td>
+                    <td align ="right">Rp 
+                        {{ number_format($sale->tax) }}
+                    </td>
                 </tr>
             </tbody>
             <tfoot>
                 <tr>
                     <th colspan="4" align="left">Total Price</th>
-                    <td align ="right">Rp {{ number_format($sale->total + $taxdpp )}}</td>
+                    <td align ="right">Rp 
+                        {{ number_format($sale->total + $sale->tax ) }}
+                    </td>
                 </tr>
                 <tr>
                     <th colspan="2" align="center">Penerima</th>

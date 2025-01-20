@@ -92,7 +92,8 @@ class SaleController extends Controller
             // Hitung pajak jika tax_status adalah 'ppn'
             $tax = 0;
             if ($request->tax_status === 'ppn') {
-                $tax = $totalSale * 0.12; // 12% pajak
+                $dpp = ceil($totalSale*11)/12;
+                $tax = $dpp * 0.12; // 12% pajak
             }
     
             // Generate invoice number
@@ -222,16 +223,28 @@ class SaleController extends Controller
 
     $totalPrice = array_reduce($items, fn($sum, $item) => $sum + $item['total'], 0);
     $diskon = $request->diskon ? ($totalPrice * $request->diskon / 100) : 0;
-    $finalTotal = $totalPrice - $diskon;
+    $subTotal = $totalPrice - $diskon;
+    if ($request->tax_status == 'ppn'){
+        $dpp = ceil($subTotal*11)/12;
+        $tax = $dpp*0.12;
+        $finalTotal = $subTotal;
+    }
+    else {
+        $tax = 0;
+        $finalTotal = $subTotal;
+    }
 
+    // $tax = $finalTotal * ($request->tax_status == 'ppn' ? 0.12 : 0) ;
     // Update data penjualan
     $sale->update([
         'customer_id' => $request->customer_id,
+        'tax' => $tax,
         'tax_status' => $request->tax_status,
         'diskon' => $request->diskon ?? 0,
-        'total_price' => $finalTotal,
+        'total' => $finalTotal,
     ]);
 
+    // dd ($sale);
     // Hapus rincian lama dan tambahkan rincian baru
     $sale->details()->delete();
 

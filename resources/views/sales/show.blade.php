@@ -39,7 +39,7 @@
                 </tr>
                 <tr>
                     <th>Tax</th>
-                    <td>{{ $sale->tax_status == 'ppn' ? number_format($sale->tax, 2) : '0' }}</td>
+                    <td>{{ $sale->tax_status == 'ppn' ? number_format($sale->tax) : '0' }}</td>
                 </tr>
                 <tr>
                     <th>Total</th>

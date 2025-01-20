@@ -105,8 +105,16 @@
         const productDropdown = $('#product_id');
         const priceInput = $('#price');
 
-
-        let items = @json($sale->details);
+        // Initialize items array with existing sale details
+        let items = JSON.parse('{!! addslashes(json_encode($sale->details->map(function($detail) {
+            return [
+                'product_id' => $detail->product_id,
+                'name' => $detail->product->name,
+                'quantity' => $detail->quantity,
+                'price' => $detail->price,
+                'total' => $detail->total,
+            ];
+        }))) !!}');
 
         // Fungsi untuk memuat produk berdasarkan customer ID
         function loadProducts(customerId) {
@@ -121,8 +129,7 @@
                             productDropdown.append(`
                                 <option value="${product.product_id}" 
                                         data-name="${product.product.name}" 
-                                        data-price="${product.price}"
-                                    ${product.product_id == '{{ old('product_id', $sale->details->pluck("product_id")->first()) }}' ? 'selected' : ''}>
+                                        data-price="${product.price}">
                                     ${product.product.name} - ${product.price.toLocaleString()}
                                 </option>
                             `);
@@ -220,6 +227,5 @@
         }
     });
 </script>
-
 
 @endsection

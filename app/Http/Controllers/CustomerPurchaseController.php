@@ -135,13 +135,21 @@ class CustomerPurchaseController extends Controller
         DB::beginTransaction();
     
         try {
+
+            $tax = 0;
+            if ($request->tax_status === 'ppn') {
+                $dpp = ceil($total*11)/12;
+                $tax = $dpp * 0.12; // 12% pajak
+            }
+
+
             // Simpan data penjualan
             $sale = Sale::create([
                 'invoice_number' => $invoiceNumber,
                 'user_customer_id' => $customer,
                 'user_id' => $marketingId,
                 'total' => $total,
-                'tax' => 0,
+                'tax' => $tax,
                 'diskon' => 0,
                 'tax_status' => $taxstatus,
                 'due_date' => $dueDate,

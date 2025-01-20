@@ -15,11 +15,11 @@
             <div class="item">
                 <div class="detail">
                     <div>
-                        <strong>{{ $sale->invoice_number }}</strong>
+                        <strong>INVOICE {{ $sale->invoice_number }}</strong>
                         <p>{{ $sale->details[0]->product->name ?? 'No product name available' }} x{{ $sale->details[0]->quantity ?? 'No quantity available' }} </p>
                         <p>{{ $sale->created_at->format('d-m-Y') }}</p>
                         <p>{{ $sale->marketing->name }}</p>
-                        <span class="badge bg-secondary">Rp. {{ number_format($sale->total, 2) }}</span>
+                        <span class="badge bg-secondary">Rp. {{ number_format($sale->total) }}</span>
                         @if (Auth::user()->tipe_pelanggan == 'Reguler')
                             @if ($sale->payment) <!-- Periksa apakah ada relasi payment -->
                                 <span class="badge bg-success">Terbayar</span>
