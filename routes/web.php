@@ -59,7 +59,7 @@ Route::group(['middleware' => ['auth']], function () {
 });
 
 
-Route::middleware(['auth', 'role:superadmin'])->group(function () {
+Route::middleware(['auth', 'role:superadmin,admin,marketing,keuangan'])->group(function () {
     // Dashboard
     Route::get('/home', function () {
         return view('dashboard');

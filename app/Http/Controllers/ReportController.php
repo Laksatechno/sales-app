@@ -7,6 +7,8 @@ use App\Models\Sale;
 use App\Models\Product;
 use App\Models\Customer;
 use App\Models\User;
+use Illuminate\Support\Facades\Auth;
+
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class ReportController extends Controller
@@ -54,10 +56,17 @@ class ReportController extends Controller
             }
         }
     
-        // Filter berdasarkan marketing
-        if ($request->has('user_id')) {
-            $sales->where('user_id', $request->id);
+        
+        // Filter berdasarkan marketing jika user auth role superadmin dan admin
+        if (Auth::user()->role === 'superadmin' || Auth::user()->role === 'admin') {
+                if ($request->has('user_id')) {
+                $sales->where('user_id', $request->id);
+            }
+        }elseif (Auth::user()->role === 'marketing') {
+            $sales->where('user_id', Auth::user()->id);
         }
+    
+
     
         // Ambil data sales yang sudah difilter
         $sales = $sales->get();

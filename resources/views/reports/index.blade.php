@@ -70,6 +70,7 @@
                             </div>
 
                             <!-- Marketing -->
+                            @if (Auth::user()->role == 'superadmin' || Auth::user()->role == 'admin' || Auth::user()->role == 'keuangan')
                             <div class="form-group col-md-3">
                                 <select name="marketing_id" id="marketing-id" class="form-control">
                                     <option value="">Pilih Marketing</option>
@@ -78,6 +79,7 @@
                                     @endforeach
                                 </select>
                             </div>
+                            @endif
                         </div>
                     </form>
 

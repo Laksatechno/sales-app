@@ -59,10 +59,10 @@
                                                 <a class="dropdown-item" href="{{ route('sales.edit', $sale->id) }}">Edit</a>
                                             </li>
                                             <li>
-                                                <form action="{{ route('sales.destroy', $sale->id) }}" method="POST" style="display:inline;">
+                                                <form action="{{ route('sales.destroy', $sale->id) }}" method="POST" style="display:inline;" id="deleteForm{{ $sale->id }}">
                                                     @csrf
                                                     @method('DELETE')
-                                                    <button type="submit" class="dropdown-item text-danger">Delete</button>
+                                                    <button type="button" class="dropdown-item text-danger" onclick="confirmDelete({{ $sale->id }})">Delete</button>
                                                 </form>
                                             </li>
                                             <li>
@@ -70,7 +70,7 @@
                                             </li>
                                             @if (!$sale->shipment) <!-- Pastikan pengiriman belum dibuat -->
                                                 <li>
-                                                    <a class="dropdown-item" href="{{ route('shipments.create', $sale->id) }}">Kirim</a>
+                                                    <a class="dropdown-item" href="{{ route('shipments.create', $sale->id) }}" onclick="return confirm('Apakah Anda yakin ingin membuat pengiriman?')">Kirim</a>
                                                 </li>
                                             @else
                                                 <li>
@@ -139,10 +139,30 @@
     </div>
 
 @push('custom-scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         $(document).ready(function() {
             $('#salesTable').DataTable();
+
         });
+        
+        function confirmDelete(saleId) {
+                Swal.fire({
+                    title: 'Apakah Anda yakin?',
+                    text: "Data yang dihapus tidak dapat dikembalikan!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Ya, hapus!',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Submit form jika pengguna mengonfirmasi
+                        document.getElementById('deleteForm' + saleId).submit();
+                    }
+                });
+            }
     </script>
     <script>
         // Tangani submit form update status

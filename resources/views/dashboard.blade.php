@@ -15,7 +15,7 @@
             
             <!-- Wallet Footer -->
             <div class="wallet-footer">
-                @if (auth()->user()->role == 'superadmin')
+                @if (auth()->user()->role == 'superadmin' || auth()->user()->role == 'admin' || auth()->user()->role == 'keuangan' || auth()->user()->role == 'marketing')
                 <div class="item">
                     <a href="{{ route('sales.create') }}">
                         <div class="icon-wrapper bg-danger">
@@ -25,6 +25,8 @@
                         <strong>Order</strong>
                     </a>
                 </div>
+                
+                @if (auth()->user()->role == 'superadmin' || auth()->user()->role == 'admin' || auth()->user()->role == 'keuangan')
                 <div class="item">
                     <a href="{{ route('products.index') }}">
                         <div class="icon-wrapper bg-purle">
@@ -42,7 +44,7 @@
                         <strong>Customer</strong>
                     </a>
                 </div>
-
+                @endif
                 {{-- <div class="item">
                     <a href="{{ route('reports.index') }}">
                         <div class="icon-wrapper bg-warning">
@@ -62,7 +64,8 @@
                         <strong>Tagihan</strong>
                     </a>
                 </div>
-                @else 
+                @endif
+                @if (auth()->user()->role == 'customer')
                 <div class="item">
                     <a href="{{ route('shop.index') }}">
                             <div class="icon-wrapper bg-danger">
@@ -84,7 +87,7 @@
                 @endif  
             </div>
             <div class="wallet-footer">
-                @if (auth()->user()->role == 'superadmin')
+                @if (auth()->user()->role == 'superadmin' || auth()->user()->role == 'admin' || auth()->user()->role == 'keuangan' || auth()->user()->role == 'marketing')
                 <div class="item">
                     <a href="{{ route('shipments.index') }}">
                         <div class="icon-wrapper bg-secondary">
