@@ -112,16 +112,15 @@ class CustomerPurchaseController extends Controller
         // Tentukan due_date berdasarkan tipe_pelanggan
         $dueDate = (Auth::user()->tipe_pelanggan == 'subdis') ? null : now()->addMonth(1);
     
-        // Generate invoice number
-        $currentYear = Carbon::now()->year;
-        $latestInvoice = Sale::whereYear('created_at', $currentYear)
-            ->orderBy('invoice_number', 'desc')
-            ->first();
-    
-        if (empty($latestInvoice) || date('Y', strtotime($latestInvoice->created_at)) !== $currentYear) {
-            $id = 1;
+        $currentYear = date('Y');
+        $lastInvoice = Sale::whereYear('created_at', $currentYear)->orderBy('invoice_number', 'DESC')->first();
+
+        if ($lastInvoice) {
+            // If the last invoice is from the current year, increment the number
+            $id = intval(substr($lastInvoice->invoice_number, -4)) + 1;
         } else {
-            $id = (int)$latestInvoice->invoice_number + 1;
+            // If there are no invoices for the current year, start from 1
+            $id = 1;
         }
     
         $invoiceNumber = str_pad($id, 4, '0', STR_PAD_LEFT); // Format 4 digit

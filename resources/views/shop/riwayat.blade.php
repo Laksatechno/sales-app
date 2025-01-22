@@ -19,7 +19,7 @@
                         <p>{{ $sale->details[0]->product->name ?? 'No product name available' }} x{{ $sale->details[0]->quantity ?? 'No quantity available' }} </p>
                         <p>{{ $sale->created_at->format('d-m-Y') }}</p>
                         <p>{{ $sale->marketing->name }}</p>
-                        <span class="badge bg-secondary">Rp. {{ number_format($sale->total) }}</span>
+                        <span class="badge bg-secondary">Rp. {{ number_format($sale->total + $sale->tax) }}</span>
                         @if (Auth::user()->tipe_pelanggan == 'Reguler')
                             @if ($sale->payment) <!-- Periksa apakah ada relasi payment -->
                                 <span class="badge bg-success">Terbayar</span>

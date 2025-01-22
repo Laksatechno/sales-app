@@ -34,17 +34,23 @@ Route::middleware('guest')->group(function () {
     })->name('login');
 });
 
-Route::middleware(['auth', 'role:customer,superadmin'])->group(function () {
+Route::middleware(['auth', 'role:customer,superadmin,marketing'])->group(function () {
     // Brosur
     Route::resource('brochures', BrochureController::class);
     Route::get('/brochures/{brochure}/download', [BrochureController::class, 'download'])
         ->name('brochures.download');
 
     Route::get('shipments', [ShipmentController::class, 'index'])->name('shipments.index');
+    Route::get('pengiriman', [ShipmentController::class, 'indexcs'])->name('shipments.indexcs');
+
     Route::get('shipments/create/{id}', [ShipmentController::class, 'create'])->name('shipments.create');
     Route::post('shipments', [ShipmentController::class, 'store'])->name('shipments.store');
     Route::get('shipments/{id}', [ShipmentController::class, 'show'])->name('shipments.show');
     Route::patch('shipments/{id}/update-status', [ShipmentController::class, 'updateStatus'])->name('shipments.updateStatus');
+
+    Route::get('shipments/kirim/id', [ShipmentController::class, 'kirim'])->name('shipments.kirim');
+    Route::get('shipments/jalan/id', [ShipmentController::class, 'jalan'])->name('shipments.jalan');
+    Route::get('shipments/selesai/id', [ShipmentController::class, 'selesai'])->name('shipments.selesai');
 });
 
 Route::group(['middleware' => ['auth']], function () {

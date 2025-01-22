@@ -13,7 +13,7 @@
 
 <div class="section mt-2 mt-3">
     <div class="card">
-        <div class="card-body">
+        <div class="card-body mb-3">
             <h3>Detail Pengiriman</h3>
             <p><strong>No. Invoice:</strong> {{ $shipment->sale->invoice_number }}</p>
             <p><strong>Customer:</strong> {{ $shipment->sale->customer->name ?? $shipment->sale->users->name }}</p>
@@ -30,6 +30,7 @@
                             @endif"></div>
                         <div class="content">
                             <h4 class="text">{{ $status->status }}</h4>
+                            @if ($shipment->photo_proof == !null)
                             @if ($loop->last)
                             <!-- Badge untuk membuka modal -->
                             <span class="badge bg-info" style="cursor: pointer;" data-bs-toggle="modal" data-bs-target="#DialogImage{{ $shipment->id }}">
@@ -74,6 +75,7 @@
                                     </div>
                                 </div>
                             </div>
+                        @endif
                         @endif
                         </div>
                         {{-- <span class="timeline-status">{{ $status->status }}</span> --}}

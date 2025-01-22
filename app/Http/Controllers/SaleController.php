@@ -18,8 +18,15 @@ class SaleController extends Controller
 {
     public function index()
     {
-        // Ambil data penjualan dan tampilkan di view
+        $user = auth()->user();
+        if ($user->role === 'marketing') {
+            $sales = Sale::with('customer', 'user', 'details','users', 'shipment' , 'payment')->where('user_id', $user->id)->get();
+        }
+        else {
+          // Ambil data penjualan dan tampilkan di view
         $sales = Sale::with('customer', 'user', 'details','users', 'shipment' , 'payment')->get();
+        }
+
         return view('sales.index', compact('sales'));
     }
 
@@ -97,18 +104,34 @@ class SaleController extends Controller
             }
     
             // Generate invoice number
-            $currentYear = Carbon::now()->year;
-            $latestInvoice = Sale::whereYear('created_at', $currentYear)
-                ->orderBy('invoice_number', 'desc')
-                ->first();
+            // $currentYear = Carbon::now()->year;
+
+            // // Ambil invoice terakhir untuk tahun ini
+            // $latestInvoice = Sale::whereYear('created_at', $currentYear)
+            //     ->orderBy('invoice_number', 'desc')
+            //     ->first();
+            
+            // if (empty($latestInvoice) || date('Y', strtotime($latestInvoice->created_at)) !== $currentYear) {
+            //     // Jika tidak ada invoice untuk tahun ini, mulai dari 1
+            //     $id = 1;
+            // } else {
+            //     // Ambil nilai integer dari invoice_number terakhir dan tambahkan 1
+            //     $id = (int)$latestInvoice->invoice_number + 1;
+            // }
+
+            $currentYear = date('Y');
+            $lastInvoice = Sale::whereYear('created_at', $currentYear)->orderBy('invoice_number', 'DESC')->first();
     
-            if (empty($latestInvoice) || date('Y', strtotime($latestInvoice->created_at)) !== $currentYear) {
-                $id = 1;
+            if ($lastInvoice) {
+                // If the last invoice is from the current year, increment the number
+                $id = intval(substr($lastInvoice->invoice_number, -4)) + 1;
             } else {
-                $id = (int)$latestInvoice->invoice_number + 1;
+                // If there are no invoices for the current year, start from 1
+                $id = 1;
             }
-    
-            $invoiceNumber = str_pad($id, 4, '0', STR_PAD_LEFT); // Format 4 digit
+            
+            // Format invoice_number dengan padding 4 digit
+            $invoiceNumber = str_pad($id, 4, '0', STR_PAD_LEFT);
     
             // Pastikan invoice_number unik
             while (Sale::where('invoice_number', $invoiceNumber)->exists()) {
