@@ -48,9 +48,10 @@ Route::middleware(['auth', 'role:customer,superadmin,marketing'])->group(functio
     Route::get('shipments/{id}', [ShipmentController::class, 'show'])->name('shipments.show');
     Route::patch('shipments/{id}/update-status', [ShipmentController::class, 'updateStatus'])->name('shipments.updateStatus');
 
-    Route::get('shipments/kirim/id', [ShipmentController::class, 'kirim'])->name('shipments.kirim');
-    Route::get('shipments/jalan/id', [ShipmentController::class, 'jalan'])->name('shipments.jalan');
-    Route::get('shipments/selesai/id', [ShipmentController::class, 'selesai'])->name('shipments.selesai');
+    // routes/web.php
+    Route::post('/kirim/{sales_id}', [ShipmentController::class, 'kirim'])->name('kirim');
+    Route::post('shipments/jalan/{id}', [ShipmentController::class, 'jalan'])->name('shipments.jalan');
+    Route::post('shipments/selesai/{id}', [ShipmentController::class, 'selesai'])->name('shipments.selesai');
 });
 
 Route::group(['middleware' => ['auth']], function () {

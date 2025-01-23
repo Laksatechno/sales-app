@@ -104,25 +104,38 @@ class ShipmentController extends Controller
         return redirect()->route('shipments.index')->with('success', 'Shipment status updated successfully!');
     }
 
-    public function kirim(Request $request)
+    public function kirim(Request $request, $sale_id)
     {
+        \Log::info('Request data:', $request->all()); // Log data request
+        \Log::info('Sale ID:', ['sale_id' => $sale_id]); // Log sale_id
+    
+        // Validasi request
         $request->validate([
-            'sale_id' => 'required|exists:sales,id',
             'delivery_date' => 'nullable|date',
         ]);
-
+    
+        // Membuat shipment
         $shipment = Shipment::create([
-            'sale_id' => $request->sale_id,
+            'sale_id' => $sale_id,
             'delivery_date' => $request->delivery_date ?? now(),
         ]);
-
-        ShipmentStatus::create([
+    
+        \Log::info('Shipment created:', $shipment->toArray()); // Log shipment
+    
+        // Membuat status shipment
+        $shipmentStatus = ShipmentStatus::create([
             'shipment_id' => $shipment->id,
             'status' => 'Pesanan Anda Sudah Diserahkan ke Pihak Logistik',
             'timestamp' => now(),
         ]);
-
-        return redirect()->route('shipments.index')->with('success', 'Shipment created successfully!');
+    
+        \Log::info('Shipment status created:', $shipmentStatus->toArray()); // Log shipment status
+    
+        // Kembalikan response JSON
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Barang berhasil diserahkan ke Logistik.'
+        ], 200);
     }
 
     public function jalan($id)

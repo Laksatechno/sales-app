@@ -69,8 +69,11 @@
                                                 <a class="dropdown-item" href="{{ route('print.pdf', $sale->id) }}">Print</a>
                                             </li>
                                             @if (!$sale->shipment) <!-- Pastikan pengiriman belum dibuat -->
-                                                <li>
+                                                {{-- <li>
                                                     <a class="dropdown-item" href="{{ route('shipments.create', $sale->id) }}" onclick="return confirm('Apakah Anda yakin ingin membuat pengiriman?')">Kirim</a>
+                                                </li> --}}
+                                                <li>
+                                                    <button type="button" class="btn btn-text-primary kirim-barang-btn" data-invoice-id="{{ $sale->id }}">KIRIM BARANG</button>
                                                 </li>
                                             @else
                                                 <li>
@@ -143,6 +146,56 @@
     <script>
         $(document).ready(function() {
             $('#salesTable').DataTable();
+            $('.kirim-barang-btn').on('click', function() {
+                var invoiceId = $(this).data('invoice-id');
+                console.log(invoiceId);
+
+                Swal.fire({
+                    title: 'Apakah Anda yakin?',
+                    text: "Ingin memproses pengiriman barang ini?",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Ya, kirim!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Jika pengguna mengkonfirmasi, lakukan AJAX request
+                        $.ajax({
+                            url: '/kirim/' + invoiceId,
+                            type: 'POST',
+                            data: {
+                                _token: '{{ csrf_token() }}', // Sertakan CSRF token
+                                delivery_date: new Date().toISOString().slice(0, 10) // Contoh data tambahan
+                            },
+                            success: function(response) {
+                                if (response.status === 'success') {
+                                    Swal.fire(
+                                        'Berhasil!',
+                                        response.message,
+                                        'success'
+                                    ).then(() => {
+                                        location.reload(); // Reload halaman untuk memperbarui status
+                                    });
+                                } else {
+                                    Swal.fire(
+                                        'Gagal!',
+                                        response.message,
+                                        'error'
+                                    );
+                                }
+                            },
+                            error: function(xhr) {
+                                Swal.fire(
+                                    'Terjadi kesalahan!',
+                                    'Permintaan gagal diproses. Silakan coba lagi.',
+                                    'error'
+                                );
+                            }
+                        });
+                    }
+                });
+            });
 
         });
         
