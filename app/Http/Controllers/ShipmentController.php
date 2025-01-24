@@ -106,8 +106,8 @@ class ShipmentController extends Controller
 
     public function kirim(Request $request, $sale_id)
     {
-        \Log::info('Request data:', $request->all()); // Log data request
-        \Log::info('Sale ID:', ['sale_id' => $sale_id]); // Log sale_id
+        // \Log::info('Request data:', $request->all()); // Log data request
+        // \Log::info('Sale ID:', ['sale_id' => $sale_id]); // Log sale_id
     
         // Validasi request
         $request->validate([
@@ -120,7 +120,7 @@ class ShipmentController extends Controller
             'delivery_date' => $request->delivery_date ?? now(),
         ]);
     
-        \Log::info('Shipment created:', $shipment->toArray()); // Log shipment
+        // \Log::info('Shipment created:', $shipment->toArray()); // Log shipment
     
         // Membuat status shipment
         $shipmentStatus = ShipmentStatus::create([
@@ -129,7 +129,7 @@ class ShipmentController extends Controller
             'timestamp' => now(),
         ]);
     
-        \Log::info('Shipment status created:', $shipmentStatus->toArray()); // Log shipment status
+        // \Log::info('Shipment status created:', $shipmentStatus->toArray()); // Log shipment status
     
         // Kembalikan response JSON
         return response()->json([
@@ -138,10 +138,10 @@ class ShipmentController extends Controller
         ], 200);
     }
 
-    public function jalan($id)
+    public function jalan($shipment_id)
     {
         // Temukan shipment berdasarkan ID
-        $shipment = Shipment::findOrFail($id);
+        $shipment = Shipment::findOrFail($shipment_id);
         // Buat entri status shipment baru
         ShipmentStatus::create([
             'shipment_id' => $shipment->id,
@@ -149,7 +149,27 @@ class ShipmentController extends Controller
             'timestamp' => now(),
         ]);
     
-        return redirect()->route('shipments.index')->with('success', 'Shipment status updated successfully!');
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Barang Dalam Perjalanan!'
+        ], 200);
+    }
+
+    public function jalanekspedisi($shipment_id)
+    {
+        // Temukan shipment berdasarkan ID
+        $shipment = Shipment::findOrFail($shipment_id);
+        // Buat entri status shipment baru
+        ShipmentStatus::create([
+            'shipment_id' => $shipment->id,
+            'status' => 'Barang Dikirim Melalui Ekspedisi',
+            'timestamp' => now(),
+        ]);
+    
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Barang Dikirim Melalui Ekspedisi!'
+        ], 200);
     }
 
 
@@ -157,7 +177,7 @@ class ShipmentController extends Controller
     {
         // Validasi input
         $request->validate([
-            'photo_proof' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Validasi untuk file gambar
+            'photo_proof' => 'nullable|string', // Gambar dikirim sebagai base64
         ]);
     
         // Temukan shipment berdasarkan ID
@@ -165,17 +185,13 @@ class ShipmentController extends Controller
     
         // Unggah foto bukti jika ada
         $photoPath = $shipment->photo_proof;
-        if ($request->hasFile('photo_proof')) {
-            // Hapus foto lama jika ada
-            if ($photoPath && file_exists(public_path('shipment_photos/' . $photoPath))) {
-                unlink(public_path('shipment_photos/' . $photoPath));
-            }
-    
-            // Simpan foto baru di direktori public/shipment_photos
-            $photo = $request->file('photo_proof');
-            $photoName = time() . '_' . $photo->getClientOriginalName(); // Nama file unik
-            $photo->move(public_path('shipment_photos'), $photoName); // Pindahkan file ke public/shipment_photos
-            $photoPath = $photoName; // Simpan nama file ke variabel $photoPath
+        if ($request->has('photo_proof')) {
+            $image = $request->photo_proof;
+            $image = str_replace('data:image/jpeg;base64,', '', $image);
+            $image = str_replace(' ', '+', $image);
+            $imageName = time() . '_' . uniqid() . '.jpeg';
+            \File::put(public_path('shipment_photos/' . $imageName), base64_decode($image));
+            $photoPath = $imageName;
         }
     
         // Buat entri status shipment baru
@@ -185,15 +201,13 @@ class ShipmentController extends Controller
             'timestamp' => now(),
         ]);
     
-        // Jika statusnya , tambahkan arrival_date dan bukti foto
-        if ($request->status === 'Barang Sudah Diperjalanan') {
-            $shipment->update([
-                'arrival_date' => now(),
-                'photo_proof' => $photoPath,
-            ]);
-        }
+        // Update shipment dengan arrival_date dan bukti foto
+        $shipment->update([
+            'arrival_date' => now(),
+            'photo_proof' => $photoPath,
+        ]);
     
-        return redirect()->route('shipments.index')->with('success', 'Shipment status updated successfully!');
+        return response()->json(['success' => true]);
     }
 
     public function show($id)

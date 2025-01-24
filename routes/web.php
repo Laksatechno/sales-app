@@ -50,7 +50,11 @@ Route::middleware(['auth', 'role:customer,superadmin,marketing'])->group(functio
 
     // routes/web.php
     Route::post('/kirim/{sales_id}', [ShipmentController::class, 'kirim'])->name('kirim');
-    Route::post('shipments/jalan/{id}', [ShipmentController::class, 'jalan'])->name('shipments.jalan');
+    Route::post('/kirim-mandiri/{shipment_id}', [ShipmentController::class, 'kirimMandiri'])->name('kirim');
+    Route::post('jalan/{shipment_id}', [ShipmentController::class, 'jalan'])->name('shipments.jalan');
+    Route::post('jalanekspedisi/{shipment_id}', [ShipmentController::class, 'jalanekspedisi'])->name('shipments.jalanekspedisi');
+    Route::post('/shipment/{id}/sampai', [ShipmentController::class, 'sampai'])->name('shipment.sampai');
+    
     Route::post('shipments/selesai/{id}', [ShipmentController::class, 'selesai'])->name('shipments.selesai');
 });
 
