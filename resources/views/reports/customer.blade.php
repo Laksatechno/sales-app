@@ -6,7 +6,7 @@
 @section('content')
 <div class="section mt-2"> 
     <div class="card">
-        <div class="card-body">
+        <div class="card-body table-responsive">
             <h2>Report By Customer</h2>
             <table class="table table-bordered">
                 <thead>

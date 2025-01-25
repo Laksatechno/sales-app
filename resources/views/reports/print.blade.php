@@ -36,7 +36,7 @@
                         <td>{{ $sale->invoice_number }}</td>
                         <td>{{ $sale->customer->name ?? $sale->users->name }}</td>
                         <td>{{ $sale->created_at->format('d-m-Y') }}</td>
-                        <td>Rp {{ number_format($sale->total, 2) }}</td>
+                        <td>Rp {{ number_format($sale->total + $sale->tax) }}</td>
                         <td>{{ $sale->marketing->name }}</td>
                     </tr>
                     @endforeach

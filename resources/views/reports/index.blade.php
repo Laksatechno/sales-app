@@ -206,16 +206,18 @@
             loadSales(); // Muat ulang data penjualan
         });
 
+
         // Fungsi untuk memuat data penjualan berdasarkan filter
         function loadSales() {
             const formData = $('#filter-form').serialize(); // Ambil data form
+            console.log(formData);
             $.ajax({
                 url: '{{ route("reports.index") }}',
                 method: 'GET',
                 data: formData,
                 success: function (response) {
                     $('#sales-list').html(response); // Perbarui daftar penjualan
-                    console.log(response);
+                    // console.log(response);
                 },
                 error: function (xhr) {
                     alert('Terjadi kesalahan saat memuat data.');

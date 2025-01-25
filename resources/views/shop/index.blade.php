@@ -8,7 +8,7 @@
     <div class  = "card-header">
         <div class="section-title">Daftar Produk</div>
     </div>
-        <div class="card-body">
+        <div class="card-body ">
             {{-- <h1>Daftar yang tersedia</h1> --}}
             @if (session('success'))
             <div class="alert alert-success mt-3">

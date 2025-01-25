@@ -6,6 +6,7 @@ use App\Models\Shipment;
 use App\Models\ShipmentStatus;
 use App\Models\Sale;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\File;
 
 class ShipmentController extends Controller
 {
@@ -23,7 +24,16 @@ class ShipmentController extends Controller
                         })
                         ->orderBy('created_at', 'desc')
                         ->get();
-                } else {
+                }elseif ($user->role === 'marketing')
+                {
+                    $shipments = Shipment::with('statuses', 'sale')
+                        ->whereHas('sale', function($query) use ($user) {
+                            $query->where('user_id', $user->role === 'marketing');
+                        })
+                        ->orderBy('created_at', 'desc')
+                        ->get();
+                }
+                else {
                     // Jika user bukan customer, kembalikan semua shipments (atau sesuai kebijakan aplikasi Anda)
                     $shipments = Shipment::with('statuses', 'sale')
                         ->orderBy('created_at', 'desc')
@@ -190,7 +200,7 @@ class ShipmentController extends Controller
             $image = str_replace('data:image/jpeg;base64,', '', $image);
             $image = str_replace(' ', '+', $image);
             $imageName = time() . '_' . uniqid() . '.jpeg';
-            \File::put(public_path('shipment_photos/' . $imageName), base64_decode($image));
+            File::put(public_path('shipment_photos/' . $imageName), base64_decode($image));
             $photoPath = $imageName;
         }
     

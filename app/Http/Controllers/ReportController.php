@@ -57,14 +57,16 @@ class ReportController extends Controller
         }
     
         
-        // Filter berdasarkan marketing jika user auth role superadmin dan admin
-        if (Auth::user()->role === 'superadmin' || Auth::user()->role === 'admin') {
-                if ($request->has('user_id')) {
-                $sales->where('user_id', $request->id);
+        if (Auth::user()->role === 'superadmin' || Auth::user()->role === 'admin' || Auth::user()->role === 'keuangan') {
+            if ($request->has('marketing_id')) {
+                $sales->where('user_id', $request->marketing_id);
             }
-        }elseif (Auth::user()->role === 'marketing') {
+        } elseif (Auth::user()->role === 'marketing') {
             $sales->where('user_id', Auth::user()->id);
         }
+        // if ($request->has('user_id')) {
+        //     $sales->where('user_id', $request->marketing_id);
+        // }
     
 
     
@@ -79,7 +81,9 @@ class ReportController extends Controller
         // Ambil data tambahan untuk dropdown filter
         $products = Product::all();
         $customers = Customer::all();
-        $marketings = User::where('role', 'marketing')->get();
+        $marketings = User::where('role', '!=', 'customer')
+             ->whereIn('role', ['marketing', 'superadmin', 'admin', 'keuangan'])
+             ->get();
     
         return view('reports.index', compact('sales', 'products', 'customers', 'marketings'));
     }
@@ -129,8 +133,12 @@ class ReportController extends Controller
     }
 
     // Filter berdasarkan marketing
-    if ($request->has('user_id')) {
-        $sales->where('user_id', $request->id);
+    if (Auth::user()->role === 'superadmin' || Auth::user()->role === 'admin' || Auth::user()->role === 'keuangan') {
+        if ($request->has('marketing_id')) {
+            $sales->where('user_id', $request->marketing_id);
+        }
+    } elseif (Auth::user()->role === 'marketing') {
+        $sales->where('user_id', Auth::user()->id);
     }
 
     // Ambil data sales yang sudah difilter

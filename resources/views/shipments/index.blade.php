@@ -39,11 +39,11 @@
                         {{-- <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#updateStatusModal" data-id="{{ $shipment->id }}">
                             Update Status
                         </button> --}}
-                        @if ($shipment->statuses->last()->status == 'Barang Sudah Sampai')
+                        {{-- @if (!$shipment->statuses->last()->status == 'Barang Sudah Sampai') --}}
                         <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#DialogForm{{$shipment->id}}">
                             Update Status 2
                         </button>
-                        @endif
+                        {{-- @endif --}}
                                 <!-- Dialog  -->
                             <div class="modal fade dialogbox" id="DialogForm{{$shipment->id}}" data-bs-backdrop="static" tabindex="-1" role="dialog">
                                 <div class="modal-dialog" role="document">
@@ -59,17 +59,44 @@
                                                 <div class="btn-inline">
                                                     <button type="button" class="btn btn-text-secondary"
                                                         data-bs-dismiss="modal">BATAL</button>
-                                                    @if ($shipment->statuses->first()->status == 'Barang Sudah Diperjalanan')
-                                                    <button type="button" class="btn btn-text-primary kirim-ekspedisi-btn"
-                                                        data-id="{{$shipment->id}}">KIRIM EKSPEDISI</button>
-                                                    <button type="button" class="btn btn-text-primary kirim-mandiri-btn" data-id="{{ $shipment->id }}">KIRIM</button>
-                                                    @endif
-                                                    @if ($shipment->statuses->last()->status == 'Barang Dikirim Melalui Ekspedisi')
-                                                    <button type="button" class="btn btn-text-primary sampai-ekspedisi-btn"
-                                                        data-id ="{{$shipment->id}}" data-bs-toggle="modal" data-bs-target="#webcamModal">SAMPAI EKSPEDISI</button>
-                                                    @elseif ($shipment->statuses->last()->status == 'Barang Sudah Diperjalanan')
-                                                    <button type="button" class="btn btn-text-primary sampai-btn" data-id="{{$shipment->id}}" data-bs-toggle="modal" data-bs-target="#webcamModal">SAMPAI</button>
-                                                    @endif
+                                                        <div class="btn-inline">
+                                                            @php
+                                                                // Ambil status terakhir dari shipment
+                                                                $currentStatus = $shipment->statuses->last()->status;
+                                                            @endphp
+                                                        
+                                                            <!-- Tombol akan ditampilkan berdasarkan status terakhir -->
+                                                            @switch($currentStatus)
+                                                                @case('Pesanan Anda Sudah Diserahkan ke Pihak Logistik')
+                                                                    <!-- Jika status adalah "Pesanan Anda Sudah Diserahkan ke Pihak Logistik" -->
+                                                                    <button type="button" class="btn btn-text-primary kirim-ekspedisi-btn" data-id="{{ $shipment->id }}">
+                                                                        KIRIM EKSPEDISI
+                                                                    </button>
+                                                                    <button type="button" class="btn btn-text-primary kirim-mandiri-btn" data-id="{{ $shipment->id }}">
+                                                                        KIRIM
+                                                                    </button>
+                                                                    @break
+                                                        
+                                                                @case('Barang Dikirim Melalui Ekspedisi')
+                                                                    <!-- Jika status adalah "Barang Dikirim Melalui Ekspedisi" -->
+                                                                    <button type="button" class="btn btn-text-primary sampai-ekspedisi-btn" data-id="{{ $shipment->id }}" 
+                                                                            data-bs-toggle="modal" data-bs-target="#webcamModal">
+                                                                        SAMPAI EKSPEDISI
+                                                                    </button>
+                                                                    @break
+                                                        
+                                                                @case('Barang Sudah Diperjalanan')
+                                                                    <!-- Jika status adalah "Barang Sudah Diperjalanan" -->
+                                                                    <button type="button" class="btn btn-text-primary sampai-btn" data-id="{{ $shipment->id }}" 
+                                                                            data-bs-toggle="modal" data-bs-target="#webcamModal">
+                                                                        SAMPAI
+                                                                    </button>
+                                                                    @break
+                                                        
+                                                                @default
+                                                                    <!-- Jika status tidak sesuai dengan kondisi di atas, tidak ada tombol tambahan yang ditampilkan -->
+                                                            @endswitch
+                                                        </div>
                                                 </div>
                                             </div>
                                     </div>

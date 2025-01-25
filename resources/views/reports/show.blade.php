@@ -7,7 +7,7 @@
 
 <div class="section mt-2">
     <div class="card">
-        <div class="card-body">
+        <div class="card-body table-responsive">
             <h2>Penjualan untuk Produk: {{ $product->name }}</h2>
             <table class="table table-bordered">
                 <thead>
